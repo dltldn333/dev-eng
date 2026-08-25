@@ -1,6 +1,7 @@
 import { app, dialog, shell, BrowserWindow } from 'electron'
 import { join } from 'node:path'
 import { closeDatabase, describeSchema, initDatabase } from './db'
+import { registerIpcHandlers } from './ipc'
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -20,6 +21,14 @@ function createWindow(): void {
 
   // 흰 화면 깜빡임을 피하려고 첫 페인트 후에 띄운다.
   window.on('ready-to-show', () => window.show())
+
+  // 렌더러 콘솔을 터미널로 끌어온다. 개발 중 DevTools를 열지 않고도 오류를 본다.
+  if (!app.isPackaged) {
+    window.webContents.on('console-message', ({ level, message, lineNumber, sourceId }) => {
+      const where = sourceId ? ` (${sourceId}:${lineNumber})` : ''
+      console.log(`[renderer:${level}] ${message}${where}`)
+    })
+  }
 
   // 외부 링크는 앱 안에서 열지 않고 기본 브라우저로 넘긴다.
   window.webContents.setWindowOpenHandler(({ url }) => {
@@ -49,6 +58,7 @@ void app.whenReady().then(() => {
     return
   }
 
+  registerIpcHandlers()
   createWindow()
 
   app.on('activate', () => {

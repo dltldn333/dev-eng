@@ -15,7 +15,8 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "db:seed": "node scripts/seed.mjs"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.2.0",
@@ -41,6 +42,7 @@
   "dependencies": {
     "better-sqlite3": "^13.0.3",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "zod": "^4.4.3"
   }
 }

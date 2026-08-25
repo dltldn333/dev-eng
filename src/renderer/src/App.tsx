@@ -1,8 +1,22 @@
-import { LAYERS, LAYER_LABEL } from '@shared/layer'
+import { useEffect, useState } from 'react'
+import { LAYERS, LAYER_LABEL, type Layer } from '@shared/layer'
+
+type Counts = Record<Layer, number>
 
 export default function App(): React.JSX.Element {
-  // 브라우저에서 단독으로 열면 preload가 없다. 화면 확인용으로 열 때를 대비한다.
-  const electronVersion = window.api?.version() ?? '—'
+  const [counts, setCounts] = useState<Counts | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function load(): Promise<void> {
+      const entries = await Promise.all(LAYERS.map((layer) => window.api.entries.list(layer)))
+      setCounts(
+        Object.fromEntries(LAYERS.map((layer, index) => [layer, entries[index].length])) as Counts
+      )
+    }
+
+    load().catch((cause: unknown) => setError(String(cause)))
+  }, [])
 
   return (
     <div className="flex h-screen flex-col">
@@ -12,10 +26,11 @@ export default function App(): React.JSX.Element {
 
       <main className="flex flex-1 items-center justify-center">
         <div className="text-center">
-          <p className="text-2xl font-semibold">뼈대 준비 완료</p>
+          <p className="text-2xl font-semibold">데이터 통로 연결됨</p>
           <p className="mt-2 text-sm text-neutral-500">
-            Electron {electronVersion} · 다음 단계에서 SQLite를 붙입니다
+            {error ?? '다음 단계에서 리스트 뷰를 붙입니다'}
           </p>
+
           <div className="mt-8 flex justify-center gap-2">
             {LAYERS.map((layer) => (
               <span
@@ -23,6 +38,9 @@ export default function App(): React.JSX.Element {
                 className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-sm text-neutral-600"
               >
                 {LAYER_LABEL[layer]}
+                <span className="ml-2 font-medium text-neutral-900 tabular-nums">
+                  {counts ? counts[layer] : '…'}
+                </span>
               </span>
             ))}
           </div>
