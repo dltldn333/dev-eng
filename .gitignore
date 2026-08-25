@@ -43,3 +43,6 @@ venv/
 
 # 타입스크립트 증분 빌드 정보
 *.tsbuildinfo
+
+# 패키징 산출물
+release/

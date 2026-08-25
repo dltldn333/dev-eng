@@ -1,0 +1,26 @@
+appId: dev.dltldn333.dev-eng
+productName: dev-eng
+directories:
+  buildResources: build
+  output: release
+
+files:
+  - out/**
+  - package.json
+
+# better-sqlite3 는 네이티브 모듈이라 asar 안에서는 로드할 수 없다.
+asarUnpack:
+  - '**/node_modules/better-sqlite3/**'
+
+# 설치 시점의 Electron ABI 에 맞춰 네이티브 모듈을 다시 빌드한다.
+npmRebuild: true
+
+mac:
+  category: public.app-category.education
+  target:
+    - dmg
+  # 개인용 빌드라 서명하지 않는다. 배포하려면 Developer ID 인증서가 필요하다.
+  identity: null
+
+dmg:
+  artifactName: ${productName}-${version}.${ext}
