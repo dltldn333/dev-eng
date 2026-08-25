@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { LAYER_LABEL, type Layer } from '@shared/layer'
+import { LAYER_LABEL } from '@shared/layer'
 import type { Entry } from '@shared/types'
 import { EmptyState } from '../components/EmptyState'
 import { EntryForm } from '../components/EntryForm'
-import { LinkedEntries } from '../components/LinkedEntries'
+import { LinkPartition } from '../components/LinkPartition'
 import { Partition } from '../components/Partition'
 import { useChildren, useEntry, useParents } from '../hooks/useEntries'
 import { useDeleteEntry, useRecordVisit, useUpdateEntry } from '../hooks/useEntryMutations'
@@ -160,39 +160,29 @@ function LinkPartitions({
   const parents = useParents(entry.id)
   const children = useChildren(entry.id)
 
-  const upper = (
-    <Partition title={LAYER_LABEL[UPPER[entry.layer] ?? 'root']} count={parents.data?.length}>
-      <LinkedEntries
-        entries={parents.data ?? []}
-        emptyText={entry.layer === 'word' ? '연결된 어원이 없습니다' : '연결된 단어가 없습니다'}
-        onOpen={onOpen}
-      />
-    </Partition>
-  )
-
-  const lower = (
-    <Partition title={LAYER_LABEL[LOWER[entry.layer] ?? 'sentence']} count={children.data?.length}>
-      <LinkedEntries
-        entries={children.data ?? []}
-        emptyText={entry.layer === 'root' ? '연결된 단어가 없습니다' : '연결된 문장이 없습니다'}
-        onOpen={onOpen}
-      />
-    </Partition>
-  )
-
   return (
     <div className="mt-8 grid gap-8 border-t border-neutral-100 pt-6 md:grid-cols-2">
-      {entry.layer === 'root' && lower}
-      {entry.layer === 'word' && (
-        <>
-          {upper}
-          {lower}
-        </>
+      {entry.layer !== 'root' && (
+        <LinkPartition
+          entry={entry}
+          side="upper"
+          neighborLayer={entry.layer === 'word' ? 'root' : 'word'}
+          linked={parents.data ?? []}
+          emptyText={entry.layer === 'word' ? '연결된 어원이 없습니다' : '연결된 단어가 없습니다'}
+          onOpen={onOpen}
+        />
       )}
-      {entry.layer === 'sentence' && upper}
+
+      {entry.layer !== 'sentence' && (
+        <LinkPartition
+          entry={entry}
+          side="lower"
+          neighborLayer={entry.layer === 'root' ? 'word' : 'sentence'}
+          linked={children.data ?? []}
+          emptyText={entry.layer === 'root' ? '연결된 단어가 없습니다' : '연결된 문장이 없습니다'}
+          onOpen={onOpen}
+        />
+      )}
     </div>
   )
 }
-
-const UPPER: Partial<Record<Layer, Layer>> = { word: 'root', sentence: 'word' }
-const LOWER: Partial<Record<Layer, Layer>> = { root: 'word', word: 'sentence' }

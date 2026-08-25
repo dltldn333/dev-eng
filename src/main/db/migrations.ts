@@ -134,5 +134,20 @@ export const MIGRATIONS: Migration[] = [
         UPDATE entries SET updated_at = datetime('now') WHERE id = NEW.id;
       END;
     `
+  },
+  {
+    version: 3,
+    name: 'remember dismissed links',
+    up: `
+      -- 자동 연결을 사람이 끊었다는 사실을 남긴다.
+      -- 이 기록이 없으면 문장을 고칠 때마다 자동 연결이 다시 계산되면서
+      -- 오탐이라 끊어둔 연결이 되살아난다. 같은 판단을 반복하게 만들지 않는다.
+      CREATE TABLE dismissed_links (
+        parent_id  INTEGER NOT NULL REFERENCES entries (id) ON DELETE CASCADE,
+        child_id   INTEGER NOT NULL REFERENCES entries (id) ON DELETE CASCADE,
+        created_at TEXT    NOT NULL DEFAULT (datetime('now')),
+        PRIMARY KEY (parent_id, child_id)
+      );
+    `
   }
 ]

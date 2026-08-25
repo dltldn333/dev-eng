@@ -13,9 +13,13 @@ async function invoke<Result>(channel: string, payload?: unknown): Promise<Resul
     return (await ipcRenderer.invoke(channel, payload)) as Result
   } catch (error) {
     const message = String(error instanceof Error ? error.message : error)
-    throw new Error(message.replace(/^Error invoking remote method '[^']+':\s*(Error:\s*)?/, ''), {
-      cause: error
-    })
+    // "Error invoking remote method 'links:create': SqliteError: ..." 에서 마지막 문장만 남긴다.
+    throw new Error(
+      message.replace(/^Error invoking remote method '[^']+':\s*(\w*Error:\s*)?/, ''),
+      {
+        cause: error
+      }
+    )
   }
 }
 

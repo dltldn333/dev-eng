@@ -46,15 +46,19 @@ export function autolinkSentence(sentence: Entry): void {
 
 /**
  * 자동 연결을 새로 만든다. 이미 손으로 이어둔 연결이면 그대로 둔다.
- * 자동 판정이 사람의 판단을 덮어써서는 안 된다.
+ * 사람이 끊어둔 연결도 다시 만들지 않는다. 자동 판정이 사람의 판단을 덮어써서는 안 된다.
  */
 function linkAuto(wordId: number, sentenceId: number): void {
   getDatabase()
     .prepare(
-      `INSERT INTO links (parent_id, child_id, origin) VALUES (?, ?, 'auto')
+      `INSERT INTO links (parent_id, child_id, origin)
+       SELECT ?, ?, 'auto'
+       WHERE NOT EXISTS (
+         SELECT 1 FROM dismissed_links WHERE parent_id = ? AND child_id = ?
+       )
        ON CONFLICT (parent_id, child_id) DO NOTHING`
     )
-    .run(wordId, sentenceId)
+    .run(wordId, sentenceId, wordId, sentenceId)
 }
 
 /** 이 단어가 든 문장들. 색인을 뒤지므로 문장 수가 늘어도 훑지 않는다. */

@@ -42,10 +42,18 @@ export function listChildren(parentId: number): LinkedEntry[] {
 /**
  * 레이어 순서가 맞는지는 DB 트리거가 판정한다.
  * 이미 있는 연결이면 조용히 넘어가되, 수동 연결이 자동으로 덮이지는 않게 한다.
+ *
+ * 손으로 다시 이으면 이전에 끊었다는 기록은 지운다. 최신 판단이 이긴다.
  */
 export function createLink(input: LinkInput): void {
+  const database = getDatabase()
+
   try {
-    getDatabase()
+    database
+      .prepare(`DELETE FROM dismissed_links WHERE parent_id = ? AND child_id = ?`)
+      .run(input.parentId, input.childId)
+
+    database
       .prepare(
         `INSERT INTO links (parent_id, child_id, origin) VALUES (?, ?, ?)
          ON CONFLICT (parent_id, child_id) DO UPDATE SET
@@ -61,8 +69,20 @@ export function createLink(input: LinkInput): void {
   }
 }
 
+/**
+ * 연결을 끊고, 끊었다는 사실을 남긴다.
+ * 자동 연결은 문장이나 단어를 고칠 때마다 다시 계산되므로, 기록이 없으면 되살아난다.
+ */
 export function deleteLink(input: UnlinkInput): void {
-  getDatabase()
-    .prepare(`DELETE FROM links WHERE parent_id = ? AND child_id = ?`)
-    .run(input.parentId, input.childId)
+  const database = getDatabase()
+
+  database.transaction(() => {
+    database
+      .prepare(`DELETE FROM links WHERE parent_id = ? AND child_id = ?`)
+      .run(input.parentId, input.childId)
+
+    database
+      .prepare(`INSERT OR IGNORE INTO dismissed_links (parent_id, child_id) VALUES (?, ?)`)
+      .run(input.parentId, input.childId)
+  })()
 }
