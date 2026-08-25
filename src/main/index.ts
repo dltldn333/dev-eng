@@ -1,5 +1,6 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, dialog, shell, BrowserWindow } from 'electron'
 import { join } from 'node:path'
+import { closeDatabase, describeSchema, initDatabase } from './db'
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -34,6 +35,20 @@ function createWindow(): void {
 }
 
 void app.whenReady().then(() => {
+  try {
+    const database = initDatabase()
+    if (!app.isPackaged) {
+      const schema = describeSchema(database)
+      console.log(`[db] ${schema.path} (v${schema.version})`)
+      console.log(`[db] tables: ${schema.tables.join(', ')}`)
+    }
+  } catch (error) {
+    // DB 없이는 아무것도 할 수 없다. 조용히 빈 창을 띄우는 것보다 이유를 보여주고 끝내는 게 낫다.
+    dialog.showErrorBox('데이터베이스를 열지 못했습니다', String(error))
+    app.quit()
+    return
+  }
+
   createWindow()
 
   app.on('activate', () => {
@@ -43,4 +58,8 @@ void app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
+})
+
+app.on('will-quit', () => {
+  closeDatabase()
 })
