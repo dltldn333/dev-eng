@@ -117,5 +117,22 @@ export const MIGRATIONS: Migration[] = [
         UPDATE entries SET updated_at = datetime('now') WHERE id = NEW.id;
       END;
     `
+  },
+  {
+    version: 2,
+    name: 'do not touch updated_at on visits',
+    up: `
+      -- 디테일 뷰를 열면 visit_count 가 오른다. 그건 편집이 아니므로 updated_at 은 그대로여야 한다.
+      -- 어떤 컬럼이 바뀌었는지를 보게 트리거를 좁힌다.
+      DROP TRIGGER trg_entries_touch_updated_at;
+
+      CREATE TRIGGER trg_entries_touch_updated_at
+      AFTER UPDATE OF text, normalized, memo ON entries
+      FOR EACH ROW
+      WHEN NEW.updated_at = OLD.updated_at
+      BEGIN
+        UPDATE entries SET updated_at = datetime('now') WHERE id = NEW.id;
+      END;
+    `
   }
 ]

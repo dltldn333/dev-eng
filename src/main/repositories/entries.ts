@@ -91,6 +91,24 @@ function relink(entry: Entry): void {
   }
 }
 
+/**
+ * 디테일 뷰 진입을 기록한다.
+ *
+ * 뒤로가기로 오가며 같은 항목을 반복해서 여는 일이 잦아서, 30초 안에 다시 열면 세지 않는다.
+ * 이 수치는 "무엇을 자꾸 다시 찾아보는가"를 재려는 것이지 화면 전환 횟수가 아니다.
+ */
+export function recordVisit(id: number): Entry | null {
+  getDatabase()
+    .prepare(
+      `UPDATE entries
+       SET visit_count = visit_count + 1, visited_at = datetime('now')
+       WHERE id = ? AND (visited_at IS NULL OR visited_at <= datetime('now', '-30 seconds'))`
+    )
+    .run(id)
+
+  return getEntry(id)
+}
+
 /** 연결과 토큰은 외래키 CASCADE로 함께 지워진다. */
 export function deleteEntry(id: number): void {
   getDatabase().prepare(`DELETE FROM entries WHERE id = ?`).run(id)

@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { LAYER_LABEL } from '@shared/layer'
+import { LAYER_LABEL, type Layer } from '@shared/layer'
+import type { Entry } from '@shared/types'
 import { EmptyState } from '../components/EmptyState'
 import { EntryForm } from '../components/EntryForm'
-import { useEntry } from '../hooks/useEntries'
-import { useDeleteEntry, useUpdateEntry } from '../hooks/useEntryMutations'
+import { LinkedEntries } from '../components/LinkedEntries'
+import { Partition } from '../components/Partition'
+import { useChildren, useEntry, useParents } from '../hooks/useEntries'
+import { useDeleteEntry, useRecordVisit, useUpdateEntry } from '../hooks/useEntryMutations'
 import { useNavigation } from '../navigation/context'
 
 export function DetailView({ id }: { id: number }): React.JSX.Element {
@@ -13,6 +16,8 @@ export function DetailView({ id }: { id: number }): React.JSX.Element {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const update = useUpdateEntry()
   const remove = useDeleteEntry()
+
+  useRecordVisit(id)
 
   if (error) return <EmptyState title="항목을 불러오지 못했습니다" hint={String(error)} />
   if (isPending) return <EmptyState title="불러오는 중…" />
@@ -39,26 +44,24 @@ export function DetailView({ id }: { id: number }): React.JSX.Element {
           {LAYER_LABEL[entry.layer]}
         </span>
 
-        <div className="ml-auto flex items-center gap-1">
-          {!editing && !confirmingDelete && (
-            <>
-              <button
-                type="button"
-                onClick={() => setEditing(true)}
-                className="rounded-lg px-2.5 py-1 text-sm text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
-              >
-                수정
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmingDelete(true)}
-                className="rounded-lg px-2.5 py-1 text-sm text-neutral-500 transition-colors hover:bg-red-50 hover:text-red-600"
-              >
-                삭제
-              </button>
-            </>
-          )}
-        </div>
+        {!editing && !confirmingDelete && (
+          <div className="ml-auto flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="rounded-lg px-2.5 py-1 text-sm text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+            >
+              수정
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmingDelete(true)}
+              className="rounded-lg px-2.5 py-1 text-sm text-neutral-500 transition-colors hover:bg-red-50 hover:text-red-600"
+            >
+              삭제
+            </button>
+          </div>
+        )}
       </div>
 
       {confirmingDelete && (
@@ -88,7 +91,7 @@ export function DetailView({ id }: { id: number }): React.JSX.Element {
         </div>
       )}
 
-      <div className="mx-auto w-full max-w-3xl px-3 pb-10">
+      <div className="mx-auto w-full max-w-3xl px-3 pb-12">
         {editing ? (
           <div className="mt-2">
             <EntryForm
@@ -127,16 +130,69 @@ export function DetailView({ id }: { id: number }): React.JSX.Element {
               {entry.text}
             </h2>
 
-            <p className="mt-3 text-sm whitespace-pre-wrap text-neutral-500">
-              {entry.memo || '메모 없음'}
-            </p>
+            <div className="mt-8 border-t border-neutral-100 pt-6">
+              <Partition title="메모">
+                <p className="px-2 text-sm leading-relaxed whitespace-pre-wrap text-neutral-600">
+                  {entry.memo || <span className="text-neutral-400">아직 없습니다</span>}
+                </p>
+              </Partition>
+            </div>
 
-            <p className="mt-10 text-xs text-neutral-400">
-              연결된 항목은 7단계에서 이 아래에 파티션으로 붙습니다
-            </p>
+            <LinkPartitions entry={entry} onOpen={(next) => go({ kind: 'detail', id: next })} />
           </>
         )}
       </div>
     </div>
   )
 }
+
+/**
+ * 이웃 레이어를 파티션으로 편다.
+ * 어원과 문장은 사슬의 양 끝이라 이웃이 한쪽뿐이고, 단어만 위아래를 모두 갖는다.
+ */
+function LinkPartitions({
+  entry,
+  onOpen
+}: {
+  entry: Entry
+  onOpen: (id: number) => void
+}): React.JSX.Element {
+  const parents = useParents(entry.id)
+  const children = useChildren(entry.id)
+
+  const upper = (
+    <Partition title={LAYER_LABEL[UPPER[entry.layer] ?? 'root']} count={parents.data?.length}>
+      <LinkedEntries
+        entries={parents.data ?? []}
+        emptyText={entry.layer === 'word' ? '연결된 어원이 없습니다' : '연결된 단어가 없습니다'}
+        onOpen={onOpen}
+      />
+    </Partition>
+  )
+
+  const lower = (
+    <Partition title={LAYER_LABEL[LOWER[entry.layer] ?? 'sentence']} count={children.data?.length}>
+      <LinkedEntries
+        entries={children.data ?? []}
+        emptyText={entry.layer === 'root' ? '연결된 단어가 없습니다' : '연결된 문장이 없습니다'}
+        onOpen={onOpen}
+      />
+    </Partition>
+  )
+
+  return (
+    <div className="mt-8 grid gap-8 border-t border-neutral-100 pt-6 md:grid-cols-2">
+      {entry.layer === 'root' && lower}
+      {entry.layer === 'word' && (
+        <>
+          {upper}
+          {lower}
+        </>
+      )}
+      {entry.layer === 'sentence' && upper}
+    </div>
+  )
+}
+
+const UPPER: Partial<Record<Layer, Layer>> = { word: 'root', sentence: 'word' }
+const LOWER: Partial<Record<Layer, Layer>> = { root: 'word', word: 'sentence' }

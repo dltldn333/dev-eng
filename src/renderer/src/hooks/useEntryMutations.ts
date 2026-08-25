@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query'
 import type { Layer } from '@shared/layer'
 import type { CreateEntryInput, UpdateEntryInput } from '@shared/schemas'
@@ -40,4 +41,28 @@ export function useDeleteEntry(): UseMutationResult<void, Error, { id: number; l
       void client.invalidateQueries({ queryKey: ['links'] })
     }
   })
+}
+
+/**
+ * 디테일 뷰에 들어온 사실을 기록한다.
+ *
+ * 몇 번 셀지는 메인 프로세스가 정한다(30초 쿨다운). 화면은 "열렸다"만 알리고,
+ * 개발 모드에서 효과가 두 번 실행되는 것도 그 쿨다운이 함께 흡수한다.
+ */
+export function useRecordVisit(id: number): void {
+  const client = useQueryClient()
+
+  useEffect(() => {
+    let cancelled = false
+
+    void window.api.entries.visit(id).then((entry) => {
+      if (cancelled || !entry) return
+      void client.invalidateQueries({ queryKey: entryKeys.detail(id) })
+      void client.invalidateQueries({ queryKey: entryKeys.list(entry.layer) })
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [id, client])
 }

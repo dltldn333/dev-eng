@@ -5,6 +5,7 @@ export const CHANNELS = {
   entriesCreate: 'entries:create',
   entriesUpdate: 'entries:update',
   entriesDelete: 'entries:delete',
+  entriesVisit: 'entries:visit',
   linksParents: 'links:parents',
   linksChildren: 'links:children',
   linksCreate: 'links:create',

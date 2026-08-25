@@ -81,6 +81,14 @@ export function installBrowserApiStub(): void {
         return entry
       },
 
+      visit: async (id: number) => {
+        const entry = find(id)
+        if (!entry) return null
+        entry.visitCount += 1
+        entry.visitedAt = now()
+        return entry
+      },
+
       remove: async (id: number) => {
         const index = entries.findIndex((entry) => entry.id === id)
         if (index >= 0) entries.splice(index, 1)

@@ -29,7 +29,8 @@ const api = {
     get: (id: number): Promise<Entry | null> => invoke(CHANNELS.entriesGet, id),
     create: (input: CreateEntryInput): Promise<Entry> => invoke(CHANNELS.entriesCreate, input),
     update: (input: UpdateEntryInput): Promise<Entry> => invoke(CHANNELS.entriesUpdate, input),
-    remove: (id: number): Promise<void> => invoke(CHANNELS.entriesDelete, id)
+    remove: (id: number): Promise<void> => invoke(CHANNELS.entriesDelete, id),
+    visit: (id: number): Promise<Entry | null> => invoke(CHANNELS.entriesVisit, id)
   },
   links: {
     parentsOf: (id: number): Promise<LinkedEntry[]> => invoke(CHANNELS.linksParents, id),

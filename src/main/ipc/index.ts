@@ -14,6 +14,7 @@ import {
   deleteEntry,
   getEntry,
   listEntries,
+  recordVisit,
   updateEntry
 } from '../repositories/entries'
 import { createLink, deleteLink, listChildren, listParents } from '../repositories/links'
@@ -43,6 +44,7 @@ export function registerIpcHandlers(): void {
   handle(CHANNELS.entriesCreate, createEntrySchema, createEntry)
   handle(CHANNELS.entriesUpdate, updateEntrySchema, updateEntry)
   handle(CHANNELS.entriesDelete, entryIdSchema, deleteEntry)
+  handle(CHANNELS.entriesVisit, entryIdSchema, recordVisit)
 
   handle(CHANNELS.linksParents, entryIdSchema, listParents)
   handle(CHANNELS.linksChildren, entryIdSchema, listChildren)
