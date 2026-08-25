@@ -1,15 +1,27 @@
+import { useState } from 'react'
 import { LAYER_LABEL } from '@shared/layer'
 import { EmptyState } from '../components/EmptyState'
+import { EntryForm } from '../components/EntryForm'
 import { useEntry } from '../hooks/useEntries'
+import { useDeleteEntry, useUpdateEntry } from '../hooks/useEntryMutations'
 import { useNavigation } from '../navigation/context'
 
 export function DetailView({ id }: { id: number }): React.JSX.Element {
-  const { canGoBack, back } = useNavigation()
+  const { canGoBack, back, go } = useNavigation()
   const { data: entry, isPending, error } = useEntry(id)
+  const [editing, setEditing] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const update = useUpdateEntry()
+  const remove = useDeleteEntry()
 
   if (error) return <EmptyState title="항목을 불러오지 못했습니다" hint={String(error)} />
   if (isPending) return <EmptyState title="불러오는 중…" />
   if (!entry) return <EmptyState title="삭제되었거나 존재하지 않는 항목입니다" />
+
+  function leave(): void {
+    if (canGoBack) back()
+    else if (entry) go({ kind: 'list', layer: entry.layer })
+  }
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
@@ -26,26 +38,104 @@ export function DetailView({ id }: { id: number }): React.JSX.Element {
         <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-500">
           {LAYER_LABEL[entry.layer]}
         </span>
+
+        <div className="ml-auto flex items-center gap-1">
+          {!editing && !confirmingDelete && (
+            <>
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="rounded-lg px-2.5 py-1 text-sm text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+              >
+                수정
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(true)}
+                className="rounded-lg px-2.5 py-1 text-sm text-neutral-500 transition-colors hover:bg-red-50 hover:text-red-600"
+              >
+                삭제
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
+      {confirmingDelete && (
+        <div className="mx-auto w-full max-w-3xl px-3">
+          <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+            <p className="flex-1 text-sm text-red-800">
+              삭제하면 이 항목에 걸린 연결도 함께 사라집니다. 진행할까요?
+            </p>
+            <button
+              type="button"
+              onClick={() => setConfirmingDelete(false)}
+              className="rounded-lg px-2.5 py-1 text-sm text-red-700 transition-colors hover:bg-red-100"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              disabled={remove.isPending}
+              onClick={() =>
+                remove.mutate({ id: entry.id, layer: entry.layer }, { onSuccess: leave })
+              }
+              className="rounded-lg bg-red-600 px-2.5 py-1 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:bg-red-300"
+            >
+              {remove.isPending ? '삭제 중…' : '삭제'}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="mx-auto w-full max-w-3xl px-3 pb-10">
-        <h2
-          className={
-            entry.layer === 'sentence'
-              ? 'text-xl leading-relaxed font-normal text-neutral-900'
-              : 'text-2xl font-semibold tracking-tight text-neutral-900'
-          }
-        >
-          {entry.text}
-        </h2>
+        {editing ? (
+          <div className="mt-2">
+            <EntryForm
+              layer={entry.layer}
+              initialText={entry.text}
+              initialMemo={entry.memo}
+              submitLabel="저장"
+              pending={update.isPending}
+              error={update.error?.message ?? null}
+              onCancel={() => {
+                setEditing(false)
+                update.reset()
+              }}
+              onSubmit={(values) =>
+                update.mutate(
+                  { id: entry.id, ...values },
+                  {
+                    onSuccess: () => {
+                      setEditing(false)
+                      update.reset()
+                    }
+                  }
+                )
+              }
+            />
+          </div>
+        ) : (
+          <>
+            <h2
+              className={
+                entry.layer === 'sentence'
+                  ? 'text-xl leading-relaxed font-normal text-neutral-900'
+                  : 'text-2xl font-semibold tracking-tight text-neutral-900'
+              }
+            >
+              {entry.text}
+            </h2>
 
-        <p className="mt-3 text-sm whitespace-pre-wrap text-neutral-500">
-          {entry.memo || '메모 없음'}
-        </p>
+            <p className="mt-3 text-sm whitespace-pre-wrap text-neutral-500">
+              {entry.memo || '메모 없음'}
+            </p>
 
-        <p className="mt-10 text-xs text-neutral-400">
-          연결된 항목은 7단계에서 이 아래에 파티션으로 붙습니다
-        </p>
+            <p className="mt-10 text-xs text-neutral-400">
+              연결된 항목은 7단계에서 이 아래에 파티션으로 붙습니다
+            </p>
+          </>
+        )}
       </div>
     </div>
   )

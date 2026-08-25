@@ -1,8 +1,12 @@
+import { useState } from 'react'
 import { LAYER_LABEL, type Layer } from '@shared/layer'
 import { EmptyState } from '../components/EmptyState'
+import { EntryForm } from '../components/EntryForm'
 import { EntryListItem } from '../components/EntryListItem'
 import { LayerTabs } from '../components/LayerTabs'
+import { Modal } from '../components/Modal'
 import { useEntries } from '../hooks/useEntries'
+import { useCreateEntry } from '../hooks/useEntryMutations'
 import { useNavigation } from '../navigation/context'
 
 const EMPTY_HINT: Record<Layer, string> = {
@@ -14,14 +18,30 @@ const EMPTY_HINT: Record<Layer, string> = {
 export function ListView({ layer }: { layer: Layer }): React.JSX.Element {
   const { go } = useNavigation()
   const { data: entries, isPending, error } = useEntries(layer)
+  const [composing, setComposing] = useState(false)
+  const create = useCreateEntry()
+
+  function closeForm(): void {
+    setComposing(false)
+    create.reset()
+  }
 
   return (
     <div className="flex h-full flex-col">
       <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-3 py-4">
         <LayerTabs active={layer} onSelect={(next) => go({ kind: 'list', layer: next })} />
-        <span className="text-sm text-neutral-400 tabular-nums">
-          {entries ? `${entries.length}개` : ''}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-neutral-400 tabular-nums">
+            {entries ? `${entries.length}개` : ''}
+          </span>
+          <button
+            type="button"
+            onClick={() => setComposing(true)}
+            className="rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-neutral-700"
+          >
+            {LAYER_LABEL[layer]} 등록
+          </button>
+        </div>
       </div>
 
       <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col overflow-y-auto px-3 pb-6">
@@ -45,6 +65,21 @@ export function ListView({ layer }: { layer: Layer }): React.JSX.Element {
           </ul>
         )}
       </div>
+
+      <Modal open={composing} title={`${LAYER_LABEL[layer]} 등록`} onClose={closeForm}>
+        {composing && (
+          <EntryForm
+            layer={layer}
+            submitLabel="등록"
+            pending={create.isPending}
+            error={create.error?.message ?? null}
+            onCancel={closeForm}
+            onSubmit={(values) =>
+              create.mutate({ layer, ...values }, { onSuccess: () => closeForm() })
+            }
+          />
+        )}
+      </Modal>
     </div>
   )
 }
