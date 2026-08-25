@@ -2,6 +2,7 @@ import { app, dialog, shell, BrowserWindow } from 'electron'
 import { join } from 'node:path'
 import { closeDatabase, describeSchema, initDatabase } from './db'
 import { registerIpcHandlers } from './ipc'
+import { backfillSentenceTokens } from './services/autolink'
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -46,7 +47,9 @@ function createWindow(): void {
 void app.whenReady().then(() => {
   try {
     const database = initDatabase()
+    const indexed = backfillSentenceTokens()
     if (!app.isPackaged) {
+      if (indexed > 0) console.log(`[db] 색인이 없던 문장 ${indexed}개를 훑었습니다`)
       const schema = describeSchema(database)
       console.log(`[db] ${schema.path} (v${schema.version})`)
       console.log(`[db] tables: ${schema.tables.join(', ')}`)

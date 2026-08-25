@@ -3,6 +3,7 @@ import { normalize } from '@shared/normalize'
 import type { CreateEntryInput, UpdateEntryInput } from '@shared/schemas'
 import type { Entry } from '@shared/types'
 import { getDatabase } from '../db'
+import { autolinkSentence, autolinkWord, reindexSentence } from '../services/autolink'
 import { toEntry, ENTRY_COLUMNS, type EntryRow } from './row'
 
 export function listEntries(layer: Layer): Entry[] {
@@ -26,12 +27,19 @@ export function createEntry(input: CreateEntryInput): Entry {
     throw new Error('알파벳이나 숫자가 하나도 없습니다')
   }
 
-  try {
-    const result = getDatabase()
-      .prepare(`INSERT INTO entries (layer, text, normalized, memo) VALUES (?, ?, ?, ?)`)
-      .run(input.layer, input.text.trim(), normalized, input.memo)
+  const database = getDatabase()
 
-    return getEntry(Number(result.lastInsertRowid))!
+  try {
+    // 등록과 자동 연결은 한 덩어리다. 연결을 거는 도중 실패하면 항목도 남기지 않는다.
+    return database.transaction(() => {
+      const result = database
+        .prepare(`INSERT INTO entries (layer, text, normalized, memo) VALUES (?, ?, ?, ?)`)
+        .run(input.layer, input.text.trim(), normalized, input.memo)
+
+      const entry = getEntry(Number(result.lastInsertRowid))!
+      relink(entry)
+      return entry
+    })()
   } catch (error) {
     throw translateConstraintError(error, input.layer)
   }
@@ -50,15 +58,37 @@ export function updateEntry(input: UpdateEntryInput): Entry {
     throw new Error('알파벳이나 숫자가 하나도 없습니다')
   }
 
+  const database = getDatabase()
+  const textChanged = text !== existing.text
+
   try {
-    getDatabase()
-      .prepare(`UPDATE entries SET text = ?, normalized = ?, memo = ? WHERE id = ?`)
-      .run(text, normalized, memo, input.id)
+    return database.transaction(() => {
+      database
+        .prepare(`UPDATE entries SET text = ?, normalized = ?, memo = ? WHERE id = ?`)
+        .run(text, normalized, memo, input.id)
+
+      const entry = getEntry(input.id)!
+      // 메모만 고쳤다면 연결은 그대로다. 본문이 바뀐 경우에만 다시 건다.
+      if (textChanged) relink(entry)
+      return entry
+    })()
   } catch (error) {
     throw translateConstraintError(error, existing.layer)
   }
+}
 
-  return getEntry(input.id)!
+/**
+ * 본문이 바뀐 항목의 자동 연결을 다시 계산한다.
+ * 어원은 자동 연결하지 않는다. 접사만 보고 판정하면 오탐이 너무 많아서,
+ * 어원-단어는 사람이 직접 잇는 것을 원칙으로 둔다.
+ */
+function relink(entry: Entry): void {
+  if (entry.layer === 'sentence') {
+    reindexSentence(entry)
+    autolinkSentence(entry)
+  } else if (entry.layer === 'word') {
+    autolinkWord(entry)
+  }
 }
 
 /** 연결과 토큰은 외래키 CASCADE로 함께 지워진다. */
