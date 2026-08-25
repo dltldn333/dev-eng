@@ -1,50 +1,40 @@
-import { useEffect, useState } from 'react'
-import { LAYERS, LAYER_LABEL, type Layer } from '@shared/layer'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { NavigationProvider } from './navigation/NavigationProvider'
+import { useNavigation } from './navigation/context'
+import { DetailView } from './views/DetailView'
+import { ListView } from './views/ListView'
 
-type Counts = Record<Layer, number>
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // 데이터는 이 앱 안에서만 바뀐다. 창을 다시 볼 때마다 다시 부를 이유가 없다.
+      refetchOnWindowFocus: false,
+      retry: false
+    }
+  }
+})
 
 export default function App(): React.JSX.Element {
-  const [counts, setCounts] = useState<Counts | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  return (
+    <QueryClientProvider client={queryClient}>
+      <NavigationProvider>
+        <Shell />
+      </NavigationProvider>
+    </QueryClientProvider>
+  )
+}
 
-  useEffect(() => {
-    async function load(): Promise<void> {
-      const entries = await Promise.all(LAYERS.map((layer) => window.api.entries.list(layer)))
-      setCounts(
-        Object.fromEntries(LAYERS.map((layer, index) => [layer, entries[index].length])) as Counts
-      )
-    }
-
-    load().catch((cause: unknown) => setError(String(cause)))
-  }, [])
+function Shell(): React.JSX.Element {
+  const { route } = useNavigation()
 
   return (
     <div className="flex h-screen flex-col">
-      <header className="flex h-14 shrink-0 items-center border-b border-neutral-200 px-6">
-        <h1 className="text-sm font-semibold tracking-tight">dev-eng</h1>
+      <header className="flex h-12 shrink-0 items-center border-b border-neutral-200 px-6">
+        <h1 className="text-sm font-semibold tracking-tight text-neutral-900">dev-eng</h1>
       </header>
 
-      <main className="flex flex-1 items-center justify-center">
-        <div className="text-center">
-          <p className="text-2xl font-semibold">데이터 통로 연결됨</p>
-          <p className="mt-2 text-sm text-neutral-500">
-            {error ?? '다음 단계에서 리스트 뷰를 붙입니다'}
-          </p>
-
-          <div className="mt-8 flex justify-center gap-2">
-            {LAYERS.map((layer) => (
-              <span
-                key={layer}
-                className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-sm text-neutral-600"
-              >
-                {LAYER_LABEL[layer]}
-                <span className="ml-2 font-medium text-neutral-900 tabular-nums">
-                  {counts ? counts[layer] : '…'}
-                </span>
-              </span>
-            ))}
-          </div>
-        </div>
+      <main className="min-h-0 flex-1">
+        {route.kind === 'list' ? <ListView layer={route.layer} /> : <DetailView id={route.id} />}
       </main>
     </div>
   )
