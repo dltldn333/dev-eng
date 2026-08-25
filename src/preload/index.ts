@@ -1,8 +1,14 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { CHANNELS } from '@shared/channels'
-import type { Layer } from '@shared/layer'
-import type { CreateEntryInput, LinkInput, UnlinkInput, UpdateEntryInput } from '@shared/schemas'
-import type { Entry, LinkedEntry } from '@shared/types'
+import type {
+  CreateEntryInput,
+  LinkInput,
+  ListEntriesInput,
+  TagAssignInput,
+  UnlinkInput,
+  UpdateEntryInput
+} from '@shared/schemas'
+import type { Entry, LinkedEntry, Tag } from '@shared/types'
 
 /**
  * ipcRenderer.invoke 가 거부되면 Electron이 채널 이름을 붙인 긴 메시지를 던진다.
@@ -29,12 +35,17 @@ async function invoke<Result>(channel: string, payload?: unknown): Promise<Resul
  */
 const api = {
   entries: {
-    list: (layer: Layer): Promise<Entry[]> => invoke(CHANNELS.entriesList, layer),
+    list: (input: ListEntriesInput): Promise<Entry[]> => invoke(CHANNELS.entriesList, input),
     get: (id: number): Promise<Entry | null> => invoke(CHANNELS.entriesGet, id),
     create: (input: CreateEntryInput): Promise<Entry> => invoke(CHANNELS.entriesCreate, input),
     update: (input: UpdateEntryInput): Promise<Entry> => invoke(CHANNELS.entriesUpdate, input),
     remove: (id: number): Promise<void> => invoke(CHANNELS.entriesDelete, id),
     visit: (id: number): Promise<Entry | null> => invoke(CHANNELS.entriesVisit, id)
+  },
+  tags: {
+    list: (): Promise<Tag[]> => invoke(CHANNELS.tagsList),
+    assign: (input: TagAssignInput): Promise<void> => invoke(CHANNELS.tagsAssign, input),
+    unassign: (input: TagAssignInput): Promise<void> => invoke(CHANNELS.tagsUnassign, input)
   },
   links: {
     parentsOf: (id: number): Promise<LinkedEntry[]> => invoke(CHANNELS.linksParents, id),

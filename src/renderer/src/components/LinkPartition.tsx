@@ -26,7 +26,8 @@ export function LinkPartition({
   onOpen
 }: Props): React.JSX.Element {
   const [picking, setPicking] = useState(false)
-  const { data: neighbors } = useEntries(neighborLayer)
+  // 연결 후보는 정렬·필터와 무관하게 표기순 전체를 보여준다.
+  const { data: neighbors } = useEntries({ layer: neighborLayer })
   const createLink = useCreateLink()
   const deleteLink = useDeleteLink()
 

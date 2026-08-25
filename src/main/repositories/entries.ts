@@ -1,22 +1,53 @@
 import type { Layer } from '@shared/layer'
 import { normalize } from '@shared/normalize'
-import type { CreateEntryInput, UpdateEntryInput } from '@shared/schemas'
+import type {
+  CreateEntryInput,
+  EntrySort,
+  ListEntriesInput,
+  UpdateEntryInput
+} from '@shared/schemas'
 import type { Entry } from '@shared/types'
 import { getDatabase } from '../db'
 import { autolinkSentence, autolinkWord, reindexSentence } from '../services/autolink'
 import { toEntry, ENTRY_COLUMNS, type EntryRow } from './row'
 
-export function listEntries(layer: Layer): Entry[] {
+/**
+ * 정렬 기준별 컬럼. 사용자가 고른 값은 zod 로 이미 걸러졌지만,
+ * 문자열을 SQL에 그대로 끼워 넣지 않도록 여기서 한 번 더 표로 옮긴다.
+ */
+const ORDER_COLUMN: Record<EntrySort, string> = {
+  text: 'e.normalized',
+  created: 'e.created_at',
+  visits: 'e.visit_count'
+}
+
+export function listEntries(
+  input: Required<Pick<ListEntriesInput, 'layer'>> & ListEntriesInput
+): Entry[] {
+  const { layer, sort = 'text', direction = 'asc', tagId } = input
+
+  const column = ORDER_COLUMN[sort]
+  const order = direction === 'desc' ? 'DESC' : 'ASC'
+  // 같은 값끼리는 언제나 같은 순서로 보이도록 표기를 두 번째 기준으로 둔다.
+  const orderBy = `ORDER BY ${column} ${order}, e.normalized ASC`
+
+  const filter = tagId
+    ? `AND EXISTS (SELECT 1 FROM entry_tags et WHERE et.entry_id = e.id AND et.tag_id = ?)`
+    : ''
+
+  const parameters: (string | number)[] = tagId ? [layer, tagId] : [layer]
+
   const rows = getDatabase()
-    .prepare(`SELECT ${ENTRY_COLUMNS} FROM entries WHERE layer = ? ORDER BY normalized`)
-    .all(layer) as EntryRow[]
+    .prepare(`SELECT ${ENTRY_COLUMNS} FROM entries e WHERE e.layer = ? ${filter} ${orderBy}`)
+    .all(...parameters) as EntryRow[]
 
   return rows.map(toEntry)
 }
 
 export function getEntry(id: number): Entry | null {
-  const row = getDatabase().prepare(`SELECT ${ENTRY_COLUMNS} FROM entries WHERE id = ?`).get(id) as
-    EntryRow | undefined
+  const row = getDatabase()
+    .prepare(`SELECT ${ENTRY_COLUMNS} FROM entries e WHERE e.id = ?`)
+    .get(id) as EntryRow | undefined
 
   return row ? toEntry(row) : null
 }

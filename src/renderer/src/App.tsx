@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { NavigationProvider } from './navigation/NavigationProvider'
+import { PreferencesProvider } from './preferences/PreferencesProvider'
 import { useNavigation } from './navigation/context'
 import { DetailView } from './views/DetailView'
 import { ListView } from './views/ListView'
@@ -17,9 +18,11 @@ const queryClient = new QueryClient({
 export default function App(): React.JSX.Element {
   return (
     <QueryClientProvider client={queryClient}>
-      <NavigationProvider>
-        <Shell />
-      </NavigationProvider>
+      <PreferencesProvider>
+        <NavigationProvider>
+          <Shell />
+        </NavigationProvider>
+      </PreferencesProvider>
     </QueryClientProvider>
   )
 }

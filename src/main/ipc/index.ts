@@ -4,8 +4,9 @@ import { CHANNELS } from '@shared/channels'
 import {
   createEntrySchema,
   entryIdSchema,
-  layerSchema,
   linkSchema,
+  listEntriesSchema,
+  tagAssignSchema,
   unlinkSchema,
   updateEntrySchema
 } from '@shared/schemas'
@@ -18,6 +19,7 @@ import {
   updateEntry
 } from '../repositories/entries'
 import { createLink, deleteLink, listChildren, listParents } from '../repositories/links'
+import { assignTag, listTags, unassignTag } from '../repositories/tags'
 
 /**
  * 렌더러가 보낸 값은 전부 여기서 스키마로 걸러낸 뒤에야 리포지토리로 들어간다.
@@ -39,7 +41,7 @@ function handle<Schema extends z.ZodType, Result>(
 }
 
 export function registerIpcHandlers(): void {
-  handle(CHANNELS.entriesList, layerSchema, listEntries)
+  handle(CHANNELS.entriesList, listEntriesSchema, listEntries)
   handle(CHANNELS.entriesGet, entryIdSchema, getEntry)
   handle(CHANNELS.entriesCreate, createEntrySchema, createEntry)
   handle(CHANNELS.entriesUpdate, updateEntrySchema, updateEntry)
@@ -50,4 +52,8 @@ export function registerIpcHandlers(): void {
   handle(CHANNELS.linksChildren, entryIdSchema, listChildren)
   handle(CHANNELS.linksCreate, linkSchema, createLink)
   handle(CHANNELS.linksDelete, unlinkSchema, deleteLink)
+
+  handle(CHANNELS.tagsList, z.undefined(), listTags)
+  handle(CHANNELS.tagsAssign, tagAssignSchema, assignTag)
+  handle(CHANNELS.tagsUnassign, tagAssignSchema, unassignTag)
 }

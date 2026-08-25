@@ -9,7 +9,11 @@ export const CHANNELS = {
   linksParents: 'links:parents',
   linksChildren: 'links:children',
   linksCreate: 'links:create',
-  linksDelete: 'links:delete'
+  linksDelete: 'links:delete',
+
+  tagsList: 'tags:list',
+  tagsAssign: 'tags:assign',
+  tagsUnassign: 'tags:unassign'
 } as const
 
 export type Channel = (typeof CHANNELS)[keyof typeof CHANNELS]

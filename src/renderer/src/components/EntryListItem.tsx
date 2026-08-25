@@ -26,6 +26,19 @@ export function EntryListItem({ entry, onOpen }: Props): React.JSX.Element {
           {entry.text}
         </span>
 
+        {entry.tags.length > 0 && (
+          <span className="hidden shrink-0 items-center gap-1 sm:flex">
+            {entry.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-500"
+              >
+                {tag}
+              </span>
+            ))}
+          </span>
+        )}
+
         {entry.memo && (
           <span className="hidden max-w-[40%] shrink-0 truncate text-sm text-neutral-400 sm:block">
             {entry.memo}

@@ -1,13 +1,7 @@
 import type { LinkInput, UnlinkInput } from '@shared/schemas'
 import type { LinkedEntry } from '@shared/types'
 import { getDatabase } from '../db'
-import { toLinkedEntry, type LinkedEntryRow } from './row'
-
-const LINKED_COLUMNS = `
-  e.id, e.layer, e.text, e.normalized, e.memo,
-  e.visit_count, e.visited_at, e.created_at, e.updated_at,
-  l.origin
-`
+import { LINKED_COLUMNS, toLinkedEntry, type LinkedEntryRow } from './row'
 
 /** 한 항목의 상위 레이어 이웃. 단어 → 어원, 문장 → 단어. */
 export function listParents(childId: number): LinkedEntry[] {

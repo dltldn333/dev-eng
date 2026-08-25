@@ -1,7 +1,12 @@
 import type { Layer } from '@shared/layer'
-import type { CreateEntryInput, UpdateEntryInput } from '@shared/schemas'
+import type {
+  CreateEntryInput,
+  ListEntriesInput,
+  TagAssignInput,
+  UpdateEntryInput
+} from '@shared/schemas'
 import { normalize } from '@shared/normalize'
-import type { Entry, LinkedEntry, LinkOrigin } from '@shared/types'
+import type { Entry, LinkedEntry, LinkOrigin, Tag } from '@shared/types'
 
 /**
  * 브라우저에서 화면을 띄워보기 위한 가짜 API.
@@ -25,16 +30,51 @@ export function installBrowserApiStub(): void {
     links.push({ parentId: idOf(parent), childId: idOf(child), origin })
   }
 
+  let nextTagId = 1
+  const tagList: Tag[] = []
+  for (const [text, ...names] of FIXTURE_TAGS) {
+    const entry = entries.find((candidate) => candidate.text === text)
+    if (!entry) continue
+    entry.tags = names
+    for (const name of names) {
+      if (!tagList.some((tag) => tag.name === name)) tagList.push({ id: nextTagId++, name })
+    }
+  }
+  tagList.sort((a, b) => a.name.localeCompare(b.name))
+
+  const tagNameOf = (id: number): string | null =>
+    tagList.find((tag) => tag.id === id)?.name ?? null
   const find = (id: number): Entry | undefined => entries.find((entry) => entry.id === id)
   const withOrigin = (id: number, origin: LinkOrigin): LinkedEntry => ({ ...find(id)!, origin })
   const now = (): string => new Date().toISOString().slice(0, 19).replace('T', ' ')
 
   window.api = {
     entries: {
-      list: async (layer: Layer) =>
-        entries
+      list: async ({ layer, sort = 'text', direction = 'asc', tagId }: ListEntriesInput) => {
+        const tagName = tagId ? tagNameOf(tagId) : null
+        const rank = (entry: Entry): string | number =>
+          sort === 'created'
+            ? entry.createdAt
+            : sort === 'visits'
+              ? entry.visitCount
+              : entry.normalized
+
+        return entries
           .filter((entry) => entry.layer === layer)
-          .sort((a, b) => a.normalized.localeCompare(b.normalized)),
+          .filter((entry) => !tagName || entry.tags.includes(tagName))
+          .sort((a, b) => {
+            const left = rank(a)
+            const right = rank(b)
+            const compared =
+              typeof left === 'number' && typeof right === 'number'
+                ? left - right
+                : String(left).localeCompare(String(right))
+            return (
+              (direction === 'desc' ? -compared : compared) ||
+              a.normalized.localeCompare(b.normalized)
+            )
+          })
+      },
 
       get: async (id: number) => find(id) ?? null,
 
@@ -52,7 +92,8 @@ export function installBrowserApiStub(): void {
           visitCount: 0,
           visitedAt: null,
           createdAt: now(),
-          updatedAt: now()
+          updatedAt: now(),
+          tags: []
         }
         entries.push(entry)
         return entry
@@ -95,6 +136,26 @@ export function installBrowserApiStub(): void {
         // DB의 ON DELETE CASCADE 를 흉내낸다.
         for (let i = links.length - 1; i >= 0; i -= 1) {
           if (links[i].parentId === id || links[i].childId === id) links.splice(i, 1)
+        }
+      }
+    },
+
+    tags: {
+      list: async () => tagList,
+      assign: async ({ entryId, name }: TagAssignInput) => {
+        const entry = find(entryId)
+        if (!entry || entry.tags.includes(name)) return
+        entry.tags = [...entry.tags, name].sort((a, b) => a.localeCompare(b))
+        if (!tagList.some((tag) => tag.name === name)) tagList.push({ id: nextTagId++, name })
+      },
+      unassign: async ({ entryId, name }: TagAssignInput) => {
+        const entry = find(entryId)
+        if (!entry) return
+        entry.tags = entry.tags.filter((tag) => tag !== name)
+        // 아무 항목에도 남지 않은 태그는 목록에서 뺀다.
+        if (!entries.some((other) => other.tags.includes(name))) {
+          const index = tagList.findIndex((tag) => tag.name === name)
+          if (index >= 0) tagList.splice(index, 1)
         }
       }
     },
@@ -165,7 +226,15 @@ function toEntry(fixture: Fixture, id: number): Entry {
     memo: fixture.memo ?? '',
     visitCount: 0,
     visitedAt: null,
-    createdAt: '2026-08-25 00:00:00',
-    updatedAt: '2026-08-25 00:00:00'
+    createdAt: `2026-08-${String(10 + id).padStart(2, '0')} 09:00:00`,
+    updatedAt: '2026-08-25 00:00:00',
+    tags: []
   }
 }
+
+const FIXTURE_TAGS: string[][] = [
+  ['inspect', '디버깅'],
+  ['infrastructure', '인프라'],
+  ['export', '빌드'],
+  ['spectator', '헷갈림']
+]

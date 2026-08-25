@@ -24,6 +24,28 @@ export const updateEntrySchema = z
     message: '수정할 내용이 없습니다'
   })
 
+/** 정렬 기준. 셋 다 "무엇을 먼저 볼 것인가"를 다르게 답한다. */
+export const sortSchema = z.enum(['text', 'created', 'visits'])
+export const directionSchema = z.enum(['asc', 'desc'])
+
+export const listEntriesSchema = z.object({
+  layer: layerSchema,
+  sort: sortSchema.default('text'),
+  direction: directionSchema.default('asc'),
+  tagId: entryIdSchema.optional()
+})
+
+export const tagNameSchema = z
+  .string()
+  .trim()
+  .min(1, '태그 이름을 입력해주세요')
+  .max(30, '태그 이름이 너무 깁니다')
+
+export const tagAssignSchema = z.object({
+  entryId: entryIdSchema,
+  name: tagNameSchema
+})
+
 export const linkSchema = z.object({
   parentId: entryIdSchema,
   childId: entryIdSchema,
@@ -35,6 +57,10 @@ export const unlinkSchema = z.object({
   childId: entryIdSchema
 })
 
+export type ListEntriesInput = z.input<typeof listEntriesSchema>
+export type EntrySort = z.infer<typeof sortSchema>
+export type SortDirection = z.infer<typeof directionSchema>
+export type TagAssignInput = z.infer<typeof tagAssignSchema>
 export type CreateEntryInput = z.infer<typeof createEntrySchema>
 export type UpdateEntryInput = z.infer<typeof updateEntrySchema>
 export type LinkInput = z.infer<typeof linkSchema>

@@ -5,6 +5,7 @@ import { EmptyState } from '../components/EmptyState'
 import { EntryForm } from '../components/EntryForm'
 import { LinkPartition } from '../components/LinkPartition'
 import { Partition } from '../components/Partition'
+import { TagEditor } from '../components/TagEditor'
 import { useChildren, useEntry, useParents } from '../hooks/useEntries'
 import { useDeleteEntry, useRecordVisit, useUpdateEntry } from '../hooks/useEntryMutations'
 import { useNavigation } from '../navigation/context'
@@ -129,6 +130,8 @@ export function DetailView({ id }: { id: number }): React.JSX.Element {
             >
               {entry.text}
             </h2>
+
+            <TagEditor entry={entry} />
 
             <div className="mt-8 border-t border-neutral-100 pt-6">
               <Partition title="메모">
