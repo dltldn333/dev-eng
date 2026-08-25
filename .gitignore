@@ -1,0 +1,42 @@
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# 환경변수 / 비밀키
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# 에디터 / IDE
+.vscode/
+.idea/
+*.swp
+
+# 로그 / 임시파일
+*.log
+logs/
+tmp/
+.cache/
+
+# 의존성 / 빌드 산출물
+node_modules/
+dist/
+build/
+.next/
+out/
+coverage/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Claude 로컬 설정
+.claude/settings.local.json
+
+# 작업용 문서 (로컬 전용, 깃에 올리지 않음)
+작업지시서.md
+개발계획.md
