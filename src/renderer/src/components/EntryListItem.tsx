@@ -1,11 +1,14 @@
 import type { Entry } from '@shared/types'
+import { VisitMeter } from './VisitMeter'
 
 interface Props {
   entry: Entry
+  /** 목록 안에서의 최대 방문 수. 막대의 눈금이 된다. */
+  maxVisits: number
   onOpen: (id: number) => void
 }
 
-export function EntryListItem({ entry, onOpen }: Props): React.JSX.Element {
+export function EntryListItem({ entry, maxVisits, onOpen }: Props): React.JSX.Element {
   // 문장은 길어서 목록에서 줄바꿈되면 훑기 어렵다. 한 줄로 자른다.
   const single = entry.layer === 'sentence'
 
@@ -40,10 +43,12 @@ export function EntryListItem({ entry, onOpen }: Props): React.JSX.Element {
         )}
 
         {entry.memo && (
-          <span className="hidden max-w-[40%] shrink-0 truncate text-sm text-neutral-400 sm:block">
+          <span className="hidden max-w-[30%] shrink-0 truncate text-sm text-neutral-400 sm:block">
             {entry.memo}
           </span>
         )}
+
+        <VisitMeter count={entry.visitCount} max={maxVisits} />
       </button>
     </li>
   )

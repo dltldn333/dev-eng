@@ -44,6 +44,14 @@ export function DetailView({ id }: { id: number }): React.JSX.Element {
         <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-500">
           {LAYER_LABEL[entry.layer]}
         </span>
+        {entry.visitCount > 0 && (
+          <span
+            className="text-xs text-neutral-400 tabular-nums"
+            title="30초 안에 다시 열면 세지 않습니다"
+          >
+            {entry.visitCount}번 봄
+          </span>
+        )}
 
         {!editing && !confirmingDelete && (
           <div className="ml-auto flex items-center gap-1">

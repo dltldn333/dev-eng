@@ -6,6 +6,7 @@ import { EntryListItem } from '../components/EntryListItem'
 import { LayerTabs } from '../components/LayerTabs'
 import { ListToolbar } from '../components/ListToolbar'
 import { Modal } from '../components/Modal'
+import { VisitChart } from '../components/VisitChart'
 import { useEntries, useTags } from '../hooks/useEntries'
 import { useCreateEntry } from '../hooks/useEntryMutations'
 import { useNavigation } from '../navigation/context'
@@ -27,7 +28,11 @@ export function ListView({ layer }: { layer: Layer }): React.JSX.Element {
     error
   } = useEntries({ layer, sort, direction, tagId: tagId ?? undefined })
   const [composing, setComposing] = useState(false)
+  const [showingChart, setShowingChart] = useState(false)
   const create = useCreateEntry()
+
+  // 막대의 눈금은 지금 보이는 목록 안에서 정한다. 필터를 걸면 그 안에서의 비율로 다시 그려진다.
+  const maxVisits = Math.max(0, ...(entries ?? []).map((entry) => entry.visitCount))
 
   function closeForm(): void {
     setComposing(false)
@@ -39,7 +44,19 @@ export function ListView({ layer }: { layer: Layer }): React.JSX.Element {
       <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-3 py-4">
         <LayerTabs active={layer} onSelect={(next) => go({ kind: 'list', layer: next })} />
         <div className="flex items-center gap-2">
-          <ListToolbar tags={tags ?? []} />
+          <ListToolbar tags={tags} />
+          <button
+            type="button"
+            aria-pressed={showingChart}
+            onClick={() => setShowingChart((current) => !current)}
+            className={
+              showingChart
+                ? 'rounded-lg border border-neutral-400 bg-white px-2 py-1 text-sm text-neutral-900'
+                : 'rounded-lg border border-neutral-200 bg-white px-2 py-1 text-sm text-neutral-600 transition-colors hover:border-neutral-400'
+            }
+          >
+            복습 순위
+          </button>
           <span className="pl-1 text-sm text-neutral-400 tabular-nums">
             {entries ? `${entries.length}개` : ''}
           </span>
@@ -54,6 +71,8 @@ export function ListView({ layer }: { layer: Layer }): React.JSX.Element {
       </div>
 
       <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col overflow-y-auto px-3 pb-6">
+        {showingChart && <VisitChart layer={layer} onOpen={(id) => go({ kind: 'detail', id })} />}
+
         {error && <EmptyState title="목록을 불러오지 못했습니다" hint={String(error)} />}
 
         {!error && isPending && <EmptyState title="불러오는 중…" />}
@@ -75,6 +94,7 @@ export function ListView({ layer }: { layer: Layer }): React.JSX.Element {
               <EntryListItem
                 key={entry.id}
                 entry={entry}
+                maxVisits={maxVisits}
                 onOpen={(id) => go({ kind: 'detail', id })}
               />
             ))}

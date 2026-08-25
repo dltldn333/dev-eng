@@ -190,16 +190,17 @@ interface Fixture {
   layer: Layer
   text: string
   memo?: string
+  visits?: number
 }
 
 const FIXTURES: Fixture[] = [
   { layer: 'root', text: 'spect — to look', memo: '보다' },
   { layer: 'root', text: 'struct — to build', memo: '쌓다, 짓다' },
   { layer: 'root', text: 'port — to carry', memo: '나르다' },
-  { layer: 'word', text: 'inspect', memo: '자세히 들여다보다' },
-  { layer: 'word', text: 'spectator' },
-  { layer: 'word', text: 'infrastructure' },
-  { layer: 'word', text: 'export' },
+  { layer: 'word', text: 'inspect', memo: '자세히 들여다보다', visits: 12 },
+  { layer: 'word', text: 'spectator', visits: 3 },
+  { layer: 'word', text: 'infrastructure', visits: 7 },
+  { layer: 'word', text: 'export', visits: 1 },
   { layer: 'word', text: 'portable' },
   { layer: 'sentence', text: 'Let me inspect the log before we deploy.' },
   { layer: 'sentence', text: 'The infrastructure team owns this pipeline.' },
@@ -224,7 +225,7 @@ function toEntry(fixture: Fixture, id: number): Entry {
     text: fixture.text,
     normalized: normalize(fixture.text),
     memo: fixture.memo ?? '',
-    visitCount: 0,
+    visitCount: fixture.visits ?? 0,
     visitedAt: null,
     createdAt: `2026-08-${String(10 + id).padStart(2, '0')} 09:00:00`,
     updatedAt: '2026-08-25 00:00:00',
