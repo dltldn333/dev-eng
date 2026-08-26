@@ -6,6 +6,8 @@ export type Route =
 
 export interface Navigation {
   route: Route
+  /** 마지막으로 머문 목록의 레이어. 사이드바에서 목록으로 돌아갈 때 쓴다. */
+  lastLayer: Layer
   /** 뒤로 갈 곳이 있는지. 어원 → 단어 → 문장으로 타고 들어간 뒤 되돌아올 때 쓴다. */
   canGoBack: boolean
   go: (route: Route) => void

@@ -13,9 +13,9 @@ export function TagView({ id }: { id: number }): React.JSX.Element {
   const update = useUpdateTag()
 
   // 태그는 레이어를 가로지른다. 세 목록을 각각 가져와 나눠 보여준다.
-  const roots = useEntries({ layer: 'root', tagId: id })
-  const words = useEntries({ layer: 'word', tagId: id })
-  const sentences = useEntries({ layer: 'sentence', tagId: id })
+  const roots = useEntries({ layer: 'root', tagIds: [id] })
+  const words = useEntries({ layer: 'word', tagIds: [id] })
+  const sentences = useEntries({ layer: 'sentence', tagIds: [id] })
   const byLayer: Record<Layer, Entry[]> = {
     root: roots.data ?? [],
     word: words.data ?? [],

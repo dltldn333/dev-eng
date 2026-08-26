@@ -55,8 +55,8 @@ export function installBrowserApiStub(): void {
     platform: 'darwin',
 
     entries: {
-      list: async ({ layer, sort = 'text', direction = 'asc', tagId }: ListEntriesInput) => {
-        const tagName = tagId ? tagNameOf(tagId) : null
+      list: async ({ layer, sort = 'text', direction = 'asc', tagIds = [] }: ListEntriesInput) => {
+        const names = tagIds.map(tagNameOf).filter((name): name is string => name !== null)
         const rank = (entry: Entry): string | number =>
           sort === 'created'
             ? entry.createdAt
@@ -66,7 +66,7 @@ export function installBrowserApiStub(): void {
 
         return entries
           .filter((entry) => entry.layer === layer)
-          .filter((entry) => !tagName || entry.tags.includes(tagName))
+          .filter((entry) => names.every((name) => entry.tags.includes(name)))
           .sort((a, b) => {
             const left = rank(a)
             const right = rank(b)

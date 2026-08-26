@@ -16,10 +16,17 @@ export function NavigationProvider({ children }: { children: ReactNode }): React
     setStack((current) => (current.length > 1 ? current.slice(0, -1) : current))
   }, [])
 
-  const value = useMemo<Navigation>(
-    () => ({ route: stack[stack.length - 1], canGoBack: stack.length > 1, go, back }),
-    [stack, go, back]
-  )
+  const value = useMemo<Navigation>(() => {
+    const lastList = [...stack].reverse().find((route) => route.kind === 'list')
+
+    return {
+      route: stack[stack.length - 1],
+      lastLayer: lastList?.kind === 'list' ? lastList.layer : 'word',
+      canGoBack: stack.length > 1,
+      go,
+      back
+    }
+  }, [stack, go, back])
 
   return <NavigationContext value={value}>{children}</NavigationContext>
 }

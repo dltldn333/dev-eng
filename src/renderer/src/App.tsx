@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { TagSidebar } from './components/TagSidebar'
 import { NavigationProvider } from './navigation/NavigationProvider'
 import { PreferencesProvider } from './preferences/PreferencesProvider'
 import { useNavigation } from './navigation/context'
@@ -52,11 +53,15 @@ function Shell(): React.JSX.Element {
         </h1>
       </header>
 
-      <main className="min-h-0 flex-1">
-        {route.kind === 'list' && <ListView layer={route.layer} />}
-        {route.kind === 'detail' && <DetailView id={route.id} />}
-        {route.kind === 'tag' && <TagView id={route.id} />}
-      </main>
+      <div className="flex min-h-0 flex-1">
+        <TagSidebar />
+
+        <main className="min-h-0 flex-1">
+          {route.kind === 'list' && <ListView layer={route.layer} />}
+          {route.kind === 'detail' && <DetailView id={route.id} />}
+          {route.kind === 'tag' && <TagView id={route.id} />}
+        </main>
+      </div>
     </div>
   )
 }

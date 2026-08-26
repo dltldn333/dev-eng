@@ -7,7 +7,7 @@ import { LayerTabs } from '../components/LayerTabs'
 import { ListToolbar } from '../components/ListToolbar'
 import { Modal } from '../components/Modal'
 import { VisitChart } from '../components/VisitChart'
-import { useEntries, useTags } from '../hooks/useEntries'
+import { useEntries } from '../hooks/useEntries'
 import { useCreateEntry } from '../hooks/useEntryMutations'
 import { useNavigation } from '../navigation/context'
 import { useListPreferences } from '../preferences/context'
@@ -20,13 +20,8 @@ const EMPTY_HINT: Record<Layer, string> = {
 
 export function ListView({ layer }: { layer: Layer }): React.JSX.Element {
   const { go } = useNavigation()
-  const { sort, direction, tagId } = useListPreferences()
-  const { data: tags } = useTags()
-  const {
-    data: entries,
-    isPending,
-    error
-  } = useEntries({ layer, sort, direction, tagId: tagId ?? undefined })
+  const { sort, direction, tagIds } = useListPreferences()
+  const { data: entries, isPending, error } = useEntries({ layer, sort, direction, tagIds })
   const [composing, setComposing] = useState(false)
   const [showingChart, setShowingChart] = useState(false)
   const create = useCreateEntry()
@@ -44,7 +39,7 @@ export function ListView({ layer }: { layer: Layer }): React.JSX.Element {
       <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-3 py-4">
         <LayerTabs active={layer} onSelect={(next) => go({ kind: 'list', layer: next })} />
         <div className="flex items-center gap-2">
-          <ListToolbar tags={tags} />
+          <ListToolbar />
           <button
             type="button"
             aria-pressed={showingChart}
@@ -77,14 +72,18 @@ export function ListView({ layer }: { layer: Layer }): React.JSX.Element {
 
         {!error && isPending && <EmptyState title="불러오는 중…" />}
 
-        {!error && entries?.length === 0 && tagId !== null && (
+        {!error && entries?.length === 0 && tagIds.length > 0 && (
           <EmptyState
-            title="이 태그가 붙은 항목이 없습니다"
-            hint="태그 필터를 '태그 전체'로 되돌려보세요"
+            title={
+              tagIds.length === 1
+                ? '이 태그가 붙은 항목이 없습니다'
+                : '고른 태그를 모두 가진 항목이 없습니다'
+            }
+            hint="사이드바에서 태그를 다시 눌러 선택을 풀 수 있습니다"
           />
         )}
 
-        {!error && entries?.length === 0 && tagId === null && (
+        {!error && entries?.length === 0 && tagIds.length === 0 && (
           <EmptyState title={`등록된 ${LAYER_LABEL[layer]}이 없습니다`} hint={EMPTY_HINT[layer]} />
         )}
 

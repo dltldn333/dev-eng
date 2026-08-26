@@ -23,7 +23,19 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
     setPreferences((current) => ({ ...current, ...patch }))
   }, [])
 
-  const value = useMemo<PreferencesStore>(() => ({ ...preferences, set }), [preferences, set])
+  const toggleTag = useCallback((id: number) => {
+    setPreferences((current) => ({
+      ...current,
+      tagIds: current.tagIds.includes(id)
+        ? current.tagIds.filter((tagId) => tagId !== id)
+        : [...current.tagIds, id]
+    }))
+  }, [])
+
+  const value = useMemo<PreferencesStore>(
+    () => ({ ...preferences, set, toggleTag }),
+    [preferences, set, toggleTag]
+  )
 
   return <PreferencesContext value={value}>{children}</PreferencesContext>
 }
@@ -37,7 +49,7 @@ function load(): ListPreferences {
     return {
       sort: parsed.sort ?? DEFAULT_PREFERENCES.sort,
       direction: parsed.direction ?? DEFAULT_PREFERENCES.direction,
-      tagId: parsed.tagId ?? null
+      tagIds: Array.isArray(parsed.tagIds) ? parsed.tagIds : []
     }
   } catch {
     return DEFAULT_PREFERENCES

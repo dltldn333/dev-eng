@@ -42,7 +42,8 @@ export const listEntriesSchema = z.object({
   layer: layerSchema,
   sort: sortSchema.default('text'),
   direction: directionSchema.default('asc'),
-  tagId: entryIdSchema.optional()
+  /** 고른 태그를 모두 가진 항목만 남긴다. 비어 있으면 전체. */
+  tagIds: z.array(entryIdSchema).default([])
 })
 
 export const tagAssignSchema = z.object({

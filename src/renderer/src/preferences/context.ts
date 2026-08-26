@@ -4,11 +4,16 @@ import type { EntrySort, SortDirection } from '@shared/schemas'
 export interface ListPreferences {
   sort: EntrySort
   direction: SortDirection
-  tagId: number | null
+  tagIds: number[]
 }
 
 export interface PreferencesStore extends ListPreferences {
   set: (patch: Partial<ListPreferences>) => void
+  /**
+   * 태그 하나를 켜고 끈다.
+   * 직전 상태를 읽어서 뒤집기 때문에, 연달아 누른 선택이 서로를 덮어쓰지 않는다.
+   */
+  toggleTag: (id: number) => void
 }
 
 export const PreferencesContext = createContext<PreferencesStore | null>(null)
@@ -22,5 +27,5 @@ export function useListPreferences(): PreferencesStore {
 export const DEFAULT_PREFERENCES: ListPreferences = {
   sort: 'text',
   direction: 'asc',
-  tagId: null
+  tagIds: []
 }

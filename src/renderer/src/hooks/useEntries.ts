@@ -7,7 +7,7 @@ export const entryKeys = {
   /** 레이어까지만 담은 접두사. 정렬·필터가 무엇이든 이 레이어의 목록을 한 번에 무효화한다. */
   list: (layer: Layer) => ['entries', 'list', layer] as const,
   listWith: (input: ListEntriesInput) =>
-    ['entries', 'list', input.layer, input.sort, input.direction, input.tagId ?? null] as const,
+    ['entries', 'list', input.layer, input.sort, input.direction, input.tagIds ?? []] as const,
   detail: (id: number) => ['entries', 'detail', id] as const,
   parents: (id: number) => ['links', 'parents', id] as const,
   children: (id: number) => ['links', 'children', id] as const
