@@ -33,18 +33,16 @@ export function listEntries(
   // 같은 값끼리는 언제나 같은 순서로 보이도록 표기를 두 번째 기준으로 둔다.
   const orderBy = `ORDER BY ${column} ${order}, e.normalized ASC`
 
-  // 태그를 여러 개 고르면 좁히는 쪽으로 동작한다. 고른 태그를 전부 가진 항목만 남는다.
+  // 태그를 여러 개 고르면 합치는 쪽으로 동작한다. 고른 태그 중 하나라도 붙어 있으면 남는다.
   const placeholders = tagIds.map(() => '?').join(', ')
   const filter = tagIds.length
-    ? `AND (
-         SELECT count(DISTINCT et.tag_id) FROM entry_tags et
+    ? `AND EXISTS (
+         SELECT 1 FROM entry_tags et
          WHERE et.entry_id = e.id AND et.tag_id IN (${placeholders})
-       ) = ?`
+       )`
     : ''
 
-  const parameters: (string | number)[] = tagIds.length
-    ? [layer, ...tagIds, tagIds.length]
-    : [layer]
+  const parameters: (string | number)[] = tagIds.length ? [layer, ...tagIds] : [layer]
 
   const rows = getDatabase()
     .prepare(`SELECT ${ENTRY_COLUMNS} FROM entries e WHERE e.layer = ? ${filter} ${orderBy}`)

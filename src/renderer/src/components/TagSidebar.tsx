@@ -27,7 +27,7 @@ export function TagSidebar(): React.JSX.Element {
   /** 이미 고른 태그를 다시 누르면 선택이 풀린다. */
   function toggle(id: number): void {
     toggleTag(id)
-    // 태그를 고르는 건 목록을 좁히겠다는 뜻이다. 디테일에 있었다면 목록으로 돌아간다.
+    // 태그를 고르는 건 그 태그의 항목을 보겠다는 뜻이다. 디테일에 있었다면 목록으로 돌아간다.
     go({ kind: 'list', layer: lastLayer })
   }
 

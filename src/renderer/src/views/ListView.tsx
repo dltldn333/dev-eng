@@ -77,7 +77,7 @@ export function ListView({ layer }: { layer: Layer }): React.JSX.Element {
             title={
               tagIds.length === 1
                 ? '이 태그가 붙은 항목이 없습니다'
-                : '고른 태그를 모두 가진 항목이 없습니다'
+                : '고른 태그가 붙은 항목이 없습니다'
             }
             hint="사이드바에서 태그를 다시 눌러 선택을 풀 수 있습니다"
           />

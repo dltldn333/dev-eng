@@ -66,7 +66,7 @@ export function installBrowserApiStub(): void {
 
         return entries
           .filter((entry) => entry.layer === layer)
-          .filter((entry) => names.every((name) => entry.tags.includes(name)))
+          .filter((entry) => names.length === 0 || names.some((name) => entry.tags.includes(name)))
           .sort((a, b) => {
             const left = rank(a)
             const right = rank(b)
