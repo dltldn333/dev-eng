@@ -46,7 +46,7 @@ export function SentenceText({ text, words, onOpen }: Props): React.JSX.Element 
               onMouseLeave={() => setOpenId(null)}
               onFocus={() => setOpenId(word.id)}
               onBlur={() => setOpenId(null)}
-              className="cursor-pointer rounded bg-neutral-100 px-0.5 decoration-neutral-300 underline-offset-4 transition-colors hover:bg-neutral-200 hover:underline"
+              className="cursor-pointer rounded-sm bg-amber-200/70 px-1 decoration-amber-500 underline-offset-4 transition-colors hover:bg-amber-300/80 hover:underline"
             >
               {segment.text}
             </button>
