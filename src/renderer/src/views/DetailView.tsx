@@ -4,7 +4,7 @@ import type { Entry } from '@shared/types'
 import { EmptyState } from '../components/EmptyState'
 import { EntryForm } from '../components/EntryForm'
 import { LinkPartition } from '../components/LinkPartition'
-import { Partition } from '../components/Partition'
+import { MemoPartition } from '../components/MemoPartition'
 import { TagEditor } from '../components/TagEditor'
 import { useChildren, useEntry, useParents } from '../hooks/useEntries'
 import { useDeleteEntry, useRecordVisit, useUpdateEntry } from '../hooks/useEntryMutations'
@@ -142,11 +142,7 @@ export function DetailView({ id }: { id: number }): React.JSX.Element {
             <TagEditor entry={entry} />
 
             <div className="mt-8 border-t border-neutral-100 pt-6">
-              <Partition title="메모">
-                <p className="px-2 text-sm leading-relaxed whitespace-pre-wrap text-neutral-600">
-                  {entry.memo || <span className="text-neutral-400">아직 없습니다</span>}
-                </p>
-              </Partition>
+              <MemoPartition entry={entry} />
             </div>
 
             <LinkPartitions entry={entry} onOpen={(next) => go({ kind: 'detail', id: next })} />

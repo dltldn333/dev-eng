@@ -19,3 +19,115 @@ body {
 .no-drag-region {
   -webkit-app-region: no-drag;
 }
+
+/*
+  메모용 마크다운. 문서가 아니라 몇 줄짜리 메모라서, 제목도 본문 크기를 크게 벗어나지 않게 둔다.
+*/
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown p,
+.markdown ul,
+.markdown ol,
+.markdown blockquote,
+.markdown pre,
+.markdown table {
+  margin-block: 0.5rem;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  margin-block: 0.75rem 0.25rem;
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
+
+.markdown h1 {
+  font-size: 1.05rem;
+}
+
+.markdown h2 {
+  font-size: 1rem;
+}
+
+.markdown h3 {
+  font-size: 0.925rem;
+}
+
+.markdown ul,
+.markdown ol {
+  padding-left: 1.25rem;
+}
+
+.markdown ul {
+  list-style: disc;
+}
+
+.markdown ol {
+  list-style: decimal;
+}
+
+.markdown li {
+  margin-block: 0.125rem;
+}
+
+.markdown a {
+  color: var(--color-neutral-900);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdown code {
+  border-radius: 0.25rem;
+  background: var(--color-neutral-100);
+  padding: 0.1rem 0.3rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+}
+
+.markdown pre {
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  background: var(--color-neutral-100);
+  padding: 0.6rem 0.75rem;
+}
+
+.markdown pre code {
+  background: none;
+  padding: 0;
+}
+
+.markdown blockquote {
+  border-left: 2px solid var(--color-neutral-200);
+  padding-left: 0.75rem;
+  color: var(--color-neutral-500);
+}
+
+.markdown strong {
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
+
+.markdown table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.markdown th,
+.markdown td {
+  border: 1px solid var(--color-neutral-200);
+  padding: 0.25rem 0.5rem;
+  text-align: left;
+}
+
+.markdown hr {
+  margin-block: 0.75rem;
+  border-top: 1px solid var(--color-neutral-200);
+}
