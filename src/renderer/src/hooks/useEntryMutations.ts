@@ -1,17 +1,20 @@
 import { useEffect } from 'react'
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query'
 import type { Layer } from '@shared/layer'
-import type { CreateEntryInput, UpdateEntryInput } from '@shared/schemas'
+import type { CreateEntryPayload, UpdateEntryInput } from '@shared/schemas'
 import type { Entry } from '@shared/types'
 import { entryKeys } from './useEntries'
 
-export function useCreateEntry(): UseMutationResult<Entry, Error, CreateEntryInput> {
+export function useCreateEntry(): UseMutationResult<Entry, Error, CreateEntryPayload> {
   const client = useQueryClient()
 
   return useMutation({
-    mutationFn: (input: CreateEntryInput) => window.api.entries.create(input),
+    mutationFn: (input: CreateEntryPayload) => window.api.entries.create(input),
     onSuccess: (entry) => {
       void client.invalidateQueries({ queryKey: entryKeys.list(entry.layer) })
+      // 등록과 함께 태그나 연결이 붙었을 수 있다.
+      void client.invalidateQueries({ queryKey: ['links'] })
+      void client.invalidateQueries({ queryKey: ['tags'] })
     }
   })
 }

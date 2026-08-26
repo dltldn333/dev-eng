@@ -114,9 +114,9 @@ export function DetailView({ id }: { id: number }): React.JSX.Element {
                 setEditing(false)
                 update.reset()
               }}
-              onSubmit={(values) =>
+              onSubmit={({ text, memo }) =>
                 update.mutate(
-                  { id: entry.id, ...values },
+                  { id: entry.id, text, memo },
                   {
                     onSuccess: () => {
                       setEditing(false)

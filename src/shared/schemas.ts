@@ -8,10 +8,20 @@ export const layerSchema = z.enum(LAYERS, { message: '알 수 없는 레이어�
 
 export const entryIdSchema = z.number().int().positive({ message: '항목 번호가 올바르지 않습니다' })
 
+export const tagNameSchema = z
+  .string()
+  .trim()
+  .min(1, '태그 이름을 입력해주세요')
+  .max(30, '태그 이름이 너무 깁니다')
+
 export const createEntrySchema = z.object({
   layer: layerSchema,
   text: z.string().trim().min(1, '내용을 입력해주세요'),
-  memo: z.string().default('')
+  memo: z.string().default(''),
+  /** 등록과 동시에 붙일 태그. 없는 태그는 만들어진다. */
+  tags: z.array(tagNameSchema).default([]),
+  /** 등록과 동시에 이을 상위 레이어 항목. 단어라면 어원, 문장이라면 단어. */
+  parentIds: z.array(entryIdSchema).default([])
 })
 
 export const updateEntrySchema = z
@@ -35,12 +45,6 @@ export const listEntriesSchema = z.object({
   tagId: entryIdSchema.optional()
 })
 
-export const tagNameSchema = z
-  .string()
-  .trim()
-  .min(1, '태그 이름을 입력해주세요')
-  .max(30, '태그 이름이 너무 깁니다')
-
 export const tagAssignSchema = z.object({
   entryId: entryIdSchema,
   name: tagNameSchema
@@ -62,6 +66,8 @@ export type EntrySort = z.infer<typeof sortSchema>
 export type SortDirection = z.infer<typeof directionSchema>
 export type TagAssignInput = z.infer<typeof tagAssignSchema>
 export type CreateEntryInput = z.infer<typeof createEntrySchema>
+/** 화면에서 넘길 때의 모양. 기본값이 있는 항목은 생략할 수 있다. */
+export type CreateEntryPayload = z.input<typeof createEntrySchema>
 export type UpdateEntryInput = z.infer<typeof updateEntrySchema>
 export type LinkInput = z.infer<typeof linkSchema>
 export type UnlinkInput = z.infer<typeof unlinkSchema>

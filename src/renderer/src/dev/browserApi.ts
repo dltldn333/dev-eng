@@ -1,6 +1,6 @@
 import type { Layer } from '@shared/layer'
 import type {
-  CreateEntryInput,
+  CreateEntryPayload,
   ListEntriesInput,
   TagAssignInput,
   UpdateEntryInput
@@ -80,7 +80,7 @@ export function installBrowserApiStub(): void {
 
       get: async (id: number) => find(id) ?? null,
 
-      create: async (input: CreateEntryInput) => {
+      create: async (input: CreateEntryPayload) => {
         const normalized = normalize(input.text)
         if (entries.some((entry) => entry.layer === input.layer && entry.normalized === normalized))
           throw new Error(`이미 등록된 ${LAYER_NOUN[input.layer]}입니다`)
@@ -90,14 +90,22 @@ export function installBrowserApiStub(): void {
           layer: input.layer,
           text: input.text.trim(),
           normalized,
-          memo: input.memo,
+          memo: input.memo ?? '',
           visitCount: 0,
           visitedAt: null,
           createdAt: now(),
           updatedAt: now(),
-          tags: []
+          tags: [...(input.tags ?? [])].sort((a, b) => a.localeCompare(b))
         }
         entries.push(entry)
+
+        for (const name of entry.tags) {
+          if (!tagList.some((tag) => tag.name === name)) tagList.push({ id: nextTagId++, name })
+        }
+        for (const parentId of input.parentIds ?? []) {
+          links.push({ parentId, childId: entry.id, origin: 'manual' })
+        }
+
         return entry
       },
 

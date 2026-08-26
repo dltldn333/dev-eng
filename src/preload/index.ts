@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { CHANNELS } from '@shared/channels'
 import type {
-  CreateEntryInput,
+  CreateEntryPayload,
   LinkInput,
   ListEntriesInput,
   TagAssignInput,
@@ -40,7 +40,7 @@ const api = {
   entries: {
     list: (input: ListEntriesInput): Promise<Entry[]> => invoke(CHANNELS.entriesList, input),
     get: (id: number): Promise<Entry | null> => invoke(CHANNELS.entriesGet, id),
-    create: (input: CreateEntryInput): Promise<Entry> => invoke(CHANNELS.entriesCreate, input),
+    create: (input: CreateEntryPayload): Promise<Entry> => invoke(CHANNELS.entriesCreate, input),
     update: (input: UpdateEntryInput): Promise<Entry> => invoke(CHANNELS.entriesUpdate, input),
     remove: (id: number): Promise<void> => invoke(CHANNELS.entriesDelete, id),
     visit: (id: number): Promise<Entry | null> => invoke(CHANNELS.entriesVisit, id)

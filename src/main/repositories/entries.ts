@@ -9,7 +9,9 @@ import type {
 import type { Entry } from '@shared/types'
 import { getDatabase } from '../db'
 import { autolinkSentence, autolinkWord, reindexSentence } from '../services/autolink'
+import { createLink } from './links'
 import { toEntry, ENTRY_COLUMNS, type EntryRow } from './row'
+import { assignTag } from './tags'
 
 /**
  * 정렬 기준별 컬럼. 사용자가 고른 값은 zod 로 이미 걸러졌지만,
@@ -69,7 +71,19 @@ export function createEntry(input: CreateEntryInput): Entry {
 
       const entry = getEntry(Number(result.lastInsertRowid))!
       relink(entry)
-      return entry
+
+      for (const name of input.tags) {
+        assignTag({ entryId: entry.id, name })
+      }
+
+      // 어원 연결처럼 등록 시점에 이미 알고 있는 관계는 같이 저장한다.
+      // 레이어 순서가 어긋나면 트리거가 막고, 트랜잭션 전체가 되돌아간다.
+      for (const parentId of input.parentIds) {
+        createLink({ parentId, childId: entry.id, origin: 'manual' })
+      }
+
+      // 태그와 연결이 붙은 뒤의 모습으로 돌려준다.
+      return getEntry(entry.id)!
     })()
   } catch (error) {
     throw translateConstraintError(error, input.layer)

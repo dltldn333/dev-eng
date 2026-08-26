@@ -106,6 +106,7 @@ export function ListView({ layer }: { layer: Layer }): React.JSX.Element {
         {composing && (
           <EntryForm
             layer={layer}
+            withRelations
             submitLabel="등록"
             pending={create.isPending}
             error={create.error?.message ?? null}
