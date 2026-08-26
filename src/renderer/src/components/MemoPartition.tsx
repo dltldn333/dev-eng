@@ -46,7 +46,7 @@ export function MemoPartition({ entry }: { entry: Entry }): React.JSX.Element {
 
   return (
     <Partition
-      title="메모"
+      title="본문"
       action={
         !editing && (
           <button
@@ -54,7 +54,7 @@ export function MemoPartition({ entry }: { entry: Entry }): React.JSX.Element {
             onClick={open}
             className="rounded px-1.5 py-0.5 text-xs text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
           >
-            {entry.memo ? '메모 수정' : '+ 메모'}
+            {entry.memo ? '본문 수정' : '+ 본문'}
           </button>
         )
       }

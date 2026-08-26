@@ -65,7 +65,7 @@ function WordPreview({ word }: { word: LinkedEntry }): React.JSX.Element {
       <span className="block text-sm font-semibold text-neutral-900">{word.text}</span>
 
       <span className="mt-1 line-clamp-3 block text-xs leading-relaxed text-neutral-500">
-        {word.memo || '메모 없음'}
+        {word.memo || '본문 없음'}
       </span>
 
       {word.tags.length > 0 && (

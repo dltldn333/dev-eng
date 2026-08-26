@@ -153,7 +153,7 @@ export function DetailView({ id }: { id: number }): React.JSX.Element {
 
             <TagEditor entry={entry} />
 
-            <div className="mt-8 border-t border-neutral-100 pt-6">
+            <div className="mt-5 border-t border-neutral-100 pt-4">
               <MemoPartition entry={entry} />
             </div>
 

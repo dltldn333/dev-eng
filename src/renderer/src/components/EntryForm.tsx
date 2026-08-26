@@ -131,7 +131,7 @@ export function EntryForm({
       </label>
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-xs font-medium text-neutral-500">메모</span>
+        <span className="text-xs font-medium text-neutral-500">본문</span>
         <textarea
           rows={2}
           value={memo}
