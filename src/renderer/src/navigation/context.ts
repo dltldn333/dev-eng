@@ -1,7 +1,8 @@
 import { createContext, useContext } from 'react'
 import type { Layer } from '@shared/layer'
 
-export type Route = { kind: 'list'; layer: Layer } | { kind: 'detail'; id: number }
+export type Route =
+  { kind: 'list'; layer: Layer } | { kind: 'detail'; id: number } | { kind: 'tag'; id: number }
 
 export interface Navigation {
   route: Route

@@ -5,6 +5,7 @@ import type {
   LinkInput,
   ListEntriesInput,
   TagAssignInput,
+  TagUpdateInput,
   UnlinkInput,
   UpdateEntryInput
 } from '@shared/schemas'
@@ -47,6 +48,8 @@ const api = {
   },
   tags: {
     list: (): Promise<Tag[]> => invoke(CHANNELS.tagsList),
+    get: (id: number): Promise<Tag | null> => invoke(CHANNELS.tagsGet, id),
+    update: (input: TagUpdateInput): Promise<Tag | null> => invoke(CHANNELS.tagsUpdate, input),
     assign: (input: TagAssignInput): Promise<void> => invoke(CHANNELS.tagsAssign, input),
     unassign: (input: TagAssignInput): Promise<void> => invoke(CHANNELS.tagsUnassign, input)
   },

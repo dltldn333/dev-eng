@@ -12,6 +12,8 @@ export const CHANNELS = {
   linksDelete: 'links:delete',
 
   tagsList: 'tags:list',
+  tagsGet: 'tags:get',
+  tagsUpdate: 'tags:update',
   tagsAssign: 'tags:assign',
   tagsUnassign: 'tags:unassign'
 } as const

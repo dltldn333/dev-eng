@@ -5,6 +5,7 @@ export type LinkOrigin = 'auto' | 'manual'
 export interface Tag {
   id: number
   name: string
+  memo: string
 }
 
 export interface Entry {

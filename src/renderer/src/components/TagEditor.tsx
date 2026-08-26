@@ -1,12 +1,16 @@
 import { useState, type KeyboardEvent } from 'react'
 import type { Entry } from '@shared/types'
+import { useTags } from '../hooks/useEntries'
 import { useAssignTag, useUnassignTag } from '../hooks/useTagMutations'
+import { useNavigation } from '../navigation/context'
 
 export function TagEditor({ entry }: { entry: Entry }): React.JSX.Element {
   const [adding, setAdding] = useState(false)
   const [name, setName] = useState('')
   const assign = useAssignTag()
   const unassign = useUnassignTag()
+  const { go } = useNavigation()
+  const { data: allTags } = useTags()
 
   function commit(): void {
     const trimmed = name.trim()
@@ -36,7 +40,17 @@ export function TagEditor({ entry }: { entry: Entry }): React.JSX.Element {
           key={tag}
           className="group inline-flex items-center gap-1 rounded-full bg-neutral-100 py-1 pr-1.5 pl-2.5 text-xs text-neutral-600"
         >
-          {tag}
+          <button
+            type="button"
+            title="태그 열기"
+            onClick={() => {
+              const found = allTags?.find((candidate) => candidate.name === tag)
+              if (found) go({ kind: 'tag', id: found.id })
+            }}
+            className="transition-colors hover:text-neutral-900 hover:underline"
+          >
+            {tag}
+          </button>
           <button
             type="button"
             aria-label={`${tag} 태그 떼기`}

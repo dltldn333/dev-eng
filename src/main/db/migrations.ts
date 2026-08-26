@@ -149,5 +149,14 @@ export const MIGRATIONS: Migration[] = [
         PRIMARY KEY (parent_id, child_id)
       );
     `
+  },
+  {
+    version: 4,
+    name: 'give tags a body',
+    up: `
+      -- 태그도 설명과 링크를 담을 수 있어야 한다.
+      -- "왜 이 태그로 묶었는가"는 항목 어디에도 적을 자리가 없었다.
+      ALTER TABLE tags ADD COLUMN memo TEXT NOT NULL DEFAULT '';
+    `
   }
 ]

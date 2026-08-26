@@ -4,6 +4,7 @@ import { PreferencesProvider } from './preferences/PreferencesProvider'
 import { useNavigation } from './navigation/context'
 import { DetailView } from './views/DetailView'
 import { ListView } from './views/ListView'
+import { TagView } from './views/TagView'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,7 +53,9 @@ function Shell(): React.JSX.Element {
       </header>
 
       <main className="min-h-0 flex-1">
-        {route.kind === 'list' ? <ListView layer={route.layer} /> : <DetailView id={route.id} />}
+        {route.kind === 'list' && <ListView layer={route.layer} />}
+        {route.kind === 'detail' && <DetailView id={route.id} />}
+        {route.kind === 'tag' && <TagView id={route.id} />}
       </main>
     </div>
   )

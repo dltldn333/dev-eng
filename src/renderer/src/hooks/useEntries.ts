@@ -24,6 +24,10 @@ export function useTags(): UseQueryResult<Tag[]> {
   return useQuery({ queryKey: ['tags'], queryFn: () => window.api.tags.list() })
 }
 
+export function useTag(id: number): UseQueryResult<Tag | null> {
+  return useQuery({ queryKey: ['tags', id], queryFn: () => window.api.tags.get(id) })
+}
+
 export function useEntry(id: number): UseQueryResult<Entry | null> {
   return useQuery({
     queryKey: entryKeys.detail(id),

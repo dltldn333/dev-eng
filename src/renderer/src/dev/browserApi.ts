@@ -3,6 +3,7 @@ import type {
   CreateEntryPayload,
   ListEntriesInput,
   TagAssignInput,
+  TagUpdateInput,
   UpdateEntryInput
 } from '@shared/schemas'
 import { normalize } from '@shared/normalize'
@@ -37,11 +38,13 @@ export function installBrowserApiStub(): void {
     if (!entry) continue
     entry.tags = names
     for (const name of names) {
-      if (!tagList.some((tag) => tag.name === name)) tagList.push({ id: nextTagId++, name })
+      if (!tagList.some((tag) => tag.name === name))
+        tagList.push({ id: nextTagId++, name, memo: '' })
     }
   }
   tagList.sort((a, b) => a.name.localeCompare(b.name))
 
+  const usedTags = (): Set<string> => new Set(entries.flatMap((entry) => entry.tags))
   const tagNameOf = (id: number): string | null =>
     tagList.find((tag) => tag.id === id)?.name ?? null
   const find = (id: number): Entry | undefined => entries.find((entry) => entry.id === id)
@@ -100,7 +103,8 @@ export function installBrowserApiStub(): void {
         entries.push(entry)
 
         for (const name of entry.tags) {
-          if (!tagList.some((tag) => tag.name === name)) tagList.push({ id: nextTagId++, name })
+          if (!tagList.some((tag) => tag.name === name))
+            tagList.push({ id: nextTagId++, name, memo: '' })
         }
         for (const parentId of input.parentIds ?? []) {
           links.push({ parentId, childId: entry.id, origin: 'manual' })
@@ -151,21 +155,31 @@ export function installBrowserApiStub(): void {
     },
 
     tags: {
-      list: async () => tagList,
+      list: async () => tagList.filter((tag) => usedTags().has(tag.name) || tag.memo !== ''),
+
+      get: async (id: number) => tagList.find((tag) => tag.id === id) ?? null,
+
+      update: async ({ id, memo }: TagUpdateInput) => {
+        const tag = tagList.find((candidate) => candidate.id === id)
+        if (!tag) return null
+        tag.memo = memo
+        return tag
+      },
       assign: async ({ entryId, name }: TagAssignInput) => {
         const entry = find(entryId)
         if (!entry || entry.tags.includes(name)) return
         entry.tags = [...entry.tags, name].sort((a, b) => a.localeCompare(b))
-        if (!tagList.some((tag) => tag.name === name)) tagList.push({ id: nextTagId++, name })
+        if (!tagList.some((tag) => tag.name === name))
+          tagList.push({ id: nextTagId++, name, memo: '' })
       },
       unassign: async ({ entryId, name }: TagAssignInput) => {
         const entry = find(entryId)
         if (!entry) return
         entry.tags = entry.tags.filter((tag) => tag !== name)
-        // 아무 항목에도 남지 않은 태그는 목록에서 뺀다.
-        if (!entries.some((other) => other.tags.includes(name))) {
-          const index = tagList.findIndex((tag) => tag.name === name)
-          if (index >= 0) tagList.splice(index, 1)
+        // 본문이 없고 아무 항목에도 남지 않은 태그만 지운다.
+        const orphan = tagList.find((tag) => tag.name === name)
+        if (orphan && orphan.memo === '' && !entries.some((other) => other.tags.includes(name))) {
+          tagList.splice(tagList.indexOf(orphan), 1)
         }
       }
     },

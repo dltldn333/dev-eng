@@ -50,6 +50,11 @@ export const tagAssignSchema = z.object({
   name: tagNameSchema
 })
 
+export const tagUpdateSchema = z.object({
+  id: entryIdSchema,
+  memo: z.string()
+})
+
 export const linkSchema = z.object({
   parentId: entryIdSchema,
   childId: entryIdSchema,
@@ -65,6 +70,7 @@ export type ListEntriesInput = z.input<typeof listEntriesSchema>
 export type EntrySort = z.infer<typeof sortSchema>
 export type SortDirection = z.infer<typeof directionSchema>
 export type TagAssignInput = z.infer<typeof tagAssignSchema>
+export type TagUpdateInput = z.infer<typeof tagUpdateSchema>
 export type CreateEntryInput = z.infer<typeof createEntrySchema>
 /** 화면에서 넘길 때의 모양. 기본값이 있는 항목은 생략할 수 있다. */
 export type CreateEntryPayload = z.input<typeof createEntrySchema>

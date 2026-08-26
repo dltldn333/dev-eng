@@ -7,6 +7,7 @@ import {
   linkSchema,
   listEntriesSchema,
   tagAssignSchema,
+  tagUpdateSchema,
   unlinkSchema,
   updateEntrySchema
 } from '@shared/schemas'
@@ -19,7 +20,7 @@ import {
   updateEntry
 } from '../repositories/entries'
 import { createLink, deleteLink, listChildren, listParents } from '../repositories/links'
-import { assignTag, listTags, unassignTag } from '../repositories/tags'
+import { assignTag, getTag, listTags, unassignTag, updateTag } from '../repositories/tags'
 
 /**
  * 렌더러가 보낸 값은 전부 여기서 스키마로 걸러낸 뒤에야 리포지토리로 들어간다.
@@ -54,6 +55,8 @@ export function registerIpcHandlers(): void {
   handle(CHANNELS.linksDelete, unlinkSchema, deleteLink)
 
   handle(CHANNELS.tagsList, z.undefined(), listTags)
+  handle(CHANNELS.tagsGet, entryIdSchema, getTag)
+  handle(CHANNELS.tagsUpdate, tagUpdateSchema, updateTag)
   handle(CHANNELS.tagsAssign, tagAssignSchema, assignTag)
   handle(CHANNELS.tagsUnassign, tagAssignSchema, unassignTag)
 }

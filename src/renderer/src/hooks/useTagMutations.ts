@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query'
-import type { TagAssignInput } from '@shared/schemas'
+import type { TagAssignInput, TagUpdateInput } from '@shared/schemas'
+import type { Tag } from '@shared/types'
 
 function useTagMutation(
   action: (input: TagAssignInput) => Promise<void>
@@ -23,4 +24,15 @@ export function useAssignTag(): UseMutationResult<void, Error, TagAssignInput> {
 
 export function useUnassignTag(): UseMutationResult<void, Error, TagAssignInput> {
   return useTagMutation((input) => window.api.tags.unassign(input))
+}
+
+export function useUpdateTag(): UseMutationResult<Tag | null, Error, TagUpdateInput> {
+  const client = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: TagUpdateInput) => window.api.tags.update(input),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: ['tags'] })
+    }
+  })
 }
