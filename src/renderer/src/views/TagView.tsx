@@ -62,7 +62,12 @@ export function TagView({ id }: { id: number }): React.JSX.Element {
 
         <div className="mt-8 grid gap-8 border-t border-neutral-100 pt-6 md:grid-cols-3">
           {LAYERS.map((layer) => (
-            <Partition key={layer} title={LAYER_LABEL[layer]} count={byLayer[layer].length}>
+            <Partition
+              key={layer}
+              title={LAYER_LABEL[layer]}
+              count={byLayer[layer].length}
+              accent={`var(--color-layer-${layer})`}
+            >
               {byLayer[layer].length === 0 ? (
                 <p className="px-2 py-2 text-sm text-neutral-400">없습니다</p>
               ) : (

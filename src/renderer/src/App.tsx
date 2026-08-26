@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { SettingsDialog } from './components/SettingsDialog'
 import { TagSidebar } from './components/TagSidebar'
 import { NavigationProvider } from './navigation/NavigationProvider'
 import { PreferencesProvider } from './preferences/PreferencesProvider'
@@ -31,6 +33,7 @@ export default function App(): React.JSX.Element {
 
 function Shell(): React.JSX.Element {
   const { route } = useNavigation()
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   // macOS 는 창 버튼을 화면 위에 겹쳐 그린다. 그 자리를 비워두지 않으면 제목과 포개진다.
   const inset = window.api.platform === 'darwin'
@@ -51,7 +54,19 @@ function Shell(): React.JSX.Element {
         <h1 className="text-sm font-semibold tracking-tight text-neutral-900 select-none">
           dev-eng
         </h1>
+
+        <button
+          type="button"
+          aria-label="설정"
+          title="설정"
+          onClick={() => setSettingsOpen(true)}
+          className="no-drag-region ml-auto rounded-lg px-2 py-1 text-sm text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+        >
+          설정
+        </button>
       </header>
+
+      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
       <div className="flex min-h-0 flex-1">
         <TagSidebar />

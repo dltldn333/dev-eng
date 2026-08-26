@@ -44,6 +44,7 @@ export function LinkPartition({
     <Partition
       title={LAYER_LABEL[neighborLayer]}
       count={linked.length}
+      accent={`var(--color-layer-${neighborLayer})`}
       action={
         <button
           type="button"

@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
+  DEFAULT_COLORS,
   DEFAULT_PREFERENCES,
   PreferencesContext,
+  type ColorKey,
+  type Colors,
   type ListPreferences,
   type PreferencesStore
 } from './context'
@@ -19,6 +22,17 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
     localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences))
   }, [preferences])
 
+  /*
+    색은 CSS 변수로 한 번만 심는다. 컴포넌트마다 style 을 들고 다니면
+    색을 하나 더 늘릴 때마다 모든 자리를 찾아다녀야 한다.
+  */
+  useEffect(() => {
+    const root = document.documentElement
+    for (const [key, value] of Object.entries(preferences.colors)) {
+      root.style.setProperty(`--color-layer-${key}`, value)
+    }
+  }, [preferences.colors])
+
   const set = useCallback((patch: Partial<ListPreferences>) => {
     setPreferences((current) => ({ ...current, ...patch }))
   }, [])
@@ -32,9 +46,17 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
     }))
   }, [])
 
+  const setColor = useCallback((key: ColorKey, value: string) => {
+    setPreferences((current) => ({ ...current, colors: { ...current.colors, [key]: value } }))
+  }, [])
+
+  const resetColors = useCallback(() => {
+    setPreferences((current) => ({ ...current, colors: DEFAULT_COLORS }))
+  }, [])
+
   const value = useMemo<PreferencesStore>(
-    () => ({ ...preferences, set, toggleTag }),
-    [preferences, set, toggleTag]
+    () => ({ ...preferences, set, toggleTag, setColor, resetColors }),
+    [preferences, set, toggleTag, setColor, resetColors]
   )
 
   return <PreferencesContext value={value}>{children}</PreferencesContext>
@@ -49,7 +71,9 @@ function load(): ListPreferences {
     return {
       sort: parsed.sort ?? DEFAULT_PREFERENCES.sort,
       direction: parsed.direction ?? DEFAULT_PREFERENCES.direction,
-      tagIds: Array.isArray(parsed.tagIds) ? parsed.tagIds : []
+      tagIds: Array.isArray(parsed.tagIds) ? parsed.tagIds : [],
+      // 색은 나중에 항목이 늘 수 있으므로 기본값 위에 저장된 값을 덮는다.
+      colors: { ...DEFAULT_COLORS, ...(parsed.colors as Partial<Colors> | undefined) }
     }
   } catch {
     return DEFAULT_PREFERENCES

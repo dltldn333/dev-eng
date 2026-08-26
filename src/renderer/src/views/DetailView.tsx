@@ -45,7 +45,13 @@ export function DetailView({ id }: { id: number }): React.JSX.Element {
             ← 뒤로
           </button>
         )}
-        <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-500">
+        <span
+          className="rounded-full px-2.5 py-1 text-xs"
+          style={{
+            color: `var(--color-layer-${entry.layer})`,
+            backgroundColor: `color-mix(in oklab, var(--color-layer-${entry.layer}) 12%, white)`
+          }}
+        >
           {LAYER_LABEL[entry.layer]}
         </span>
         {entry.visitCount > 0 && (
