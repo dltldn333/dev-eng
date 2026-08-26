@@ -2,6 +2,7 @@ import type { Layer } from '@shared/layer'
 import type {
   CreateEntryPayload,
   ListEntriesInput,
+  SearchInput,
   TagAssignInput,
   TagUpdateInput,
   UpdateEntryInput
@@ -134,6 +135,28 @@ export function installBrowserApiStub(): void {
         entry.memo = input.memo ?? entry.memo
         entry.updatedAt = now()
         return entry
+      },
+
+      search: async ({ query, limit = 30 }: SearchInput) => {
+        const needle = normalize(query)
+        const raw = query.trim().toLowerCase()
+
+        const rank = (entry: Entry): number => {
+          if (!needle) return 3
+          if (entry.normalized === needle) return 0
+          if (entry.normalized.startsWith(needle)) return 1
+          if (entry.normalized.includes(needle)) return 2
+          return 3
+        }
+
+        return entries
+          .filter(
+            (entry) =>
+              (needle && entry.normalized.includes(needle)) ||
+              (raw && entry.memo.toLowerCase().includes(raw))
+          )
+          .sort((a, b) => rank(a) - rank(b) || a.text.length - b.text.length)
+          .slice(0, limit)
       },
 
       visit: async (id: number) => {

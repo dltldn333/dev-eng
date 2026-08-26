@@ -4,6 +4,7 @@ import type {
   CreateEntryPayload,
   LinkInput,
   ListEntriesInput,
+  SearchInput,
   TagAssignInput,
   TagUpdateInput,
   UnlinkInput,
@@ -44,7 +45,8 @@ const api = {
     create: (input: CreateEntryPayload): Promise<Entry> => invoke(CHANNELS.entriesCreate, input),
     update: (input: UpdateEntryInput): Promise<Entry> => invoke(CHANNELS.entriesUpdate, input),
     remove: (id: number): Promise<void> => invoke(CHANNELS.entriesDelete, id),
-    visit: (id: number): Promise<Entry | null> => invoke(CHANNELS.entriesVisit, id)
+    visit: (id: number): Promise<Entry | null> => invoke(CHANNELS.entriesVisit, id),
+    search: (input: SearchInput): Promise<Entry[]> => invoke(CHANNELS.entriesSearch, input)
   },
   tags: {
     list: (): Promise<Tag[]> => invoke(CHANNELS.tagsList),

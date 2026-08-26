@@ -51,6 +51,11 @@ export const tagAssignSchema = z.object({
   name: tagNameSchema
 })
 
+export const searchSchema = z.object({
+  query: z.string().trim().min(1, '검색어를 입력해주세요'),
+  limit: z.number().int().positive().max(100).default(30)
+})
+
 export const tagUpdateSchema = z.object({
   id: entryIdSchema,
   memo: z.string()
@@ -72,6 +77,7 @@ export type EntrySort = z.infer<typeof sortSchema>
 export type SortDirection = z.infer<typeof directionSchema>
 export type TagAssignInput = z.infer<typeof tagAssignSchema>
 export type TagUpdateInput = z.infer<typeof tagUpdateSchema>
+export type SearchInput = z.input<typeof searchSchema>
 export type CreateEntryInput = z.infer<typeof createEntrySchema>
 /** 화면에서 넘길 때의 모양. 기본값이 있는 항목은 생략할 수 있다. */
 export type CreateEntryPayload = z.input<typeof createEntrySchema>

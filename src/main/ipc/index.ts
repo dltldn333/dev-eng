@@ -6,6 +6,7 @@ import {
   entryIdSchema,
   linkSchema,
   listEntriesSchema,
+  searchSchema,
   tagAssignSchema,
   tagUpdateSchema,
   unlinkSchema,
@@ -17,6 +18,7 @@ import {
   getEntry,
   listEntries,
   recordVisit,
+  searchEntries,
   updateEntry
 } from '../repositories/entries'
 import { createLink, deleteLink, listChildren, listParents } from '../repositories/links'
@@ -48,6 +50,7 @@ export function registerIpcHandlers(): void {
   handle(CHANNELS.entriesUpdate, updateEntrySchema, updateEntry)
   handle(CHANNELS.entriesDelete, entryIdSchema, deleteEntry)
   handle(CHANNELS.entriesVisit, entryIdSchema, recordVisit)
+  handle(CHANNELS.entriesSearch, searchSchema, searchEntries)
 
   handle(CHANNELS.linksParents, entryIdSchema, listParents)
   handle(CHANNELS.linksChildren, entryIdSchema, listChildren)

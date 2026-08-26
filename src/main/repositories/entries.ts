@@ -4,6 +4,7 @@ import type {
   CreateEntryInput,
   EntrySort,
   ListEntriesInput,
+  SearchInput,
   UpdateEntryInput
 } from '@shared/schemas'
 import type { Entry } from '@shared/types'
@@ -177,4 +178,42 @@ function translateConstraintError(error: unknown, layer: Layer): Error {
     return new Error(`이미 등록된 ${LAYER_NOUN[layer]}입니다`, { cause: error })
   }
   return error instanceof Error ? error : new Error(String(error))
+}
+
+/**
+ * 표기와 본문에서 찾는다.
+ *
+ * 표기는 정규화된 값으로, 본문은 적은 그대로 훑는다. 뜻을 한글로 적어두는 일이 많아서
+ * "들여다"로도 그 단어에 닿을 수 있어야 한다.
+ *
+ * 정확히 일치 → 앞에서 시작 → 중간에 포함 → 본문에만 있음 순으로 내놓는다.
+ * 찾는 사람은 대개 방금 떠올린 그 낱말을 원하지, 그 낱말이 언급된 다른 항목을 원하지 않는다.
+ */
+export function searchEntries(input: Required<SearchInput>): Entry[] {
+  // 한글로만 검색하면 정규화 결과가 빈 문자열이 된다.
+  // 그대로 조건에 넣으면 instr(x, '') 이 1을 돌려주어 전체가 걸리므로, 빈 값은 조건에서 뺀다.
+  const needle = normalize(input.query)
+  const raw = input.query.trim().toLowerCase()
+  if (!needle && !raw) return []
+
+  const rows = getDatabase()
+    .prepare(
+      `SELECT ${ENTRY_COLUMNS} FROM entries e
+       WHERE (:needle <> '' AND instr(e.normalized, :needle) > 0)
+          OR (:raw <> '' AND instr(lower(e.memo), :raw) > 0)
+       ORDER BY
+         CASE
+           WHEN :needle = '' THEN 3
+           WHEN e.normalized = :needle THEN 0
+           WHEN instr(e.normalized, :needle) = 1 THEN 1
+           WHEN instr(e.normalized, :needle) > 0 THEN 2
+           ELSE 3
+         END,
+         length(e.text),
+         e.normalized
+       LIMIT :limit`
+    )
+    .all({ needle, raw, limit: input.limit }) as EntryRow[]
+
+  return rows.map(toEntry)
 }

@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { SearchDialog } from './components/SearchDialog'
 import { SettingsDialog } from './components/SettingsDialog'
 import { TagSidebar } from './components/TagSidebar'
 import { NavigationProvider } from './navigation/NavigationProvider'
@@ -34,6 +35,19 @@ export default function App(): React.JSX.Element {
 function Shell(): React.JSX.Element {
   const { route } = useNavigation()
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+
+  // 찾는 일은 자주 일어난다. 마우스를 헤더까지 올리지 않아도 되게 단축키를 둔다.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent): void {
+      if (event.key !== 'k' || !(event.metaKey || event.ctrlKey)) return
+      event.preventDefault()
+      setSearchOpen(true)
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   // macOS 는 창 버튼을 화면 위에 겹쳐 그린다. 그 자리를 비워두지 않으면 제목과 포개진다.
   const inset = window.api.platform === 'darwin'
@@ -57,15 +71,25 @@ function Shell(): React.JSX.Element {
 
         <button
           type="button"
+          onClick={() => setSearchOpen(true)}
+          className="no-drag-region ml-auto flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-1 text-sm text-neutral-400 transition-colors hover:border-neutral-400 hover:text-neutral-900"
+        >
+          검색
+          <kbd className="font-sans text-xs text-neutral-300">⌘K</kbd>
+        </button>
+
+        <button
+          type="button"
           aria-label="설정"
           title="설정"
           onClick={() => setSettingsOpen(true)}
-          className="no-drag-region ml-auto rounded-lg px-2 py-1 text-sm text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+          className="no-drag-region ml-2 rounded-lg px-2 py-1 text-sm text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
         >
           설정
         </button>
       </header>
 
+      {searchOpen && <SearchDialog onClose={() => setSearchOpen(false)} />}
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
       <div className="flex min-h-0 flex-1">
