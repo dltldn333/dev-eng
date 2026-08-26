@@ -67,9 +67,6 @@ export function MemoPartition({ entry }: { entry: Entry }): React.JSX.Element {
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={onKeyDown}
-            placeholder={
-              '마크다운을 쓸 수 있습니다\n\n- **굵게**, `코드`, [링크](https://…)\n- 목록, > 인용, ## 제목'
-            }
             className="w-full resize-y rounded-lg border border-neutral-200 px-3 py-2 font-mono text-sm leading-relaxed text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-400"
           />
 
