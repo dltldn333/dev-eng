@@ -34,6 +34,9 @@ async function invoke<Result>(channel: string, payload?: unknown): Promise<Resul
  * DB 핸들도 node API도 넘기지 않고, 이 함수들만 노출한다.
  */
 const api = {
+  /** 창 장식이 OS마다 달라서, 화면이 여백을 어디에 둘지 정하려면 이 값이 필요하다. */
+  platform: process.platform,
+
   entries: {
     list: (input: ListEntriesInput): Promise<Entry[]> => invoke(CHANNELS.entriesList, input),
     get: (id: number): Promise<Entry | null> => invoke(CHANNELS.entriesGet, id),

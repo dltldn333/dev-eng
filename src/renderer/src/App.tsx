@@ -30,10 +30,25 @@ export default function App(): React.JSX.Element {
 function Shell(): React.JSX.Element {
   const { route } = useNavigation()
 
+  // macOS 는 창 버튼을 화면 위에 겹쳐 그린다. 그 자리를 비워두지 않으면 제목과 포개진다.
+  const inset = window.api.platform === 'darwin'
+
   return (
     <div className="flex h-screen flex-col">
-      <header className="flex h-12 shrink-0 items-center border-b border-neutral-200 px-6">
-        <h1 className="text-sm font-semibold tracking-tight text-neutral-900">dev-eng</h1>
+      {/*
+        헤더 전체를 창 끌기 영역으로 둔다. 프레임 없는 창은 이렇게 지정하지 않으면
+        어디를 잡아도 창이 움직이지 않는다.
+      */}
+      <header
+        className={
+          inset
+            ? 'drag-region flex h-12 shrink-0 items-center border-b border-neutral-200 pr-6 pl-20'
+            : 'drag-region flex h-12 shrink-0 items-center border-b border-neutral-200 px-6'
+        }
+      >
+        <h1 className="text-sm font-semibold tracking-tight text-neutral-900 select-none">
+          dev-eng
+        </h1>
       </header>
 
       <main className="min-h-0 flex-1">

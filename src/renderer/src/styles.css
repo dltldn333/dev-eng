@@ -7,3 +7,15 @@
 body {
   @apply bg-neutral-50 text-neutral-900 antialiased;
 }
+
+/*
+  프레임 없는 창을 어디서 잡아 끌 수 있는지 지정한다.
+  Tailwind 임의 속성으로는 앞에 하이픈이 붙은 속성명이 처리되지 않아 직접 둔다.
+*/
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag-region {
+  -webkit-app-region: no-drag;
+}

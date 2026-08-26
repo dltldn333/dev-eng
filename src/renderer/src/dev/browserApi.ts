@@ -49,6 +49,8 @@ export function installBrowserApiStub(): void {
   const now = (): string => new Date().toISOString().slice(0, 19).replace('T', ' ')
 
   window.api = {
+    platform: 'darwin',
+
     entries: {
       list: async ({ layer, sort = 'text', direction = 'asc', tagId }: ListEntriesInput) => {
         const tagName = tagId ? tagNameOf(tagId) : null
