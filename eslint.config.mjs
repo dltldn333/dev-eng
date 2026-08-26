@@ -23,6 +23,13 @@ export default tseslint.config(
       reactHooks.configs.flat['recommended-latest'],
       reactRefresh.configs.vite
     ],
-    languageOptions: { globals: globals.browser }
+    languageOptions: { globals: globals.browser },
+    rules: {
+      // 넘겨받은 값 중 버릴 것을 구조 분해로 걸러낼 때가 있다. _ 로 시작하면 의도한 것으로 본다.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
+      ]
+    }
   }
 )

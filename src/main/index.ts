@@ -4,6 +4,18 @@ import { closeDatabase, describeSchema, initDatabase } from './db'
 import { registerIpcHandlers } from './ipc'
 import { backfillSentenceTokens } from './services/autolink'
 
+/** 앱이 열어줄 만한 주소인지 가려서 기본 브라우저로 넘긴다. */
+function openExternally(url: string): void {
+  const scheme = URL.parse(url)?.protocol
+  if (scheme !== 'http:' && scheme !== 'https:') {
+    if (!app.isPackaged) console.log(`[link] 열지 않음: ${url}`)
+    return
+  }
+
+  if (!app.isPackaged) console.log(`[link] 기본 브라우저로: ${url}`)
+  void shell.openExternal(url)
+}
+
 function createWindow(): void {
   const window = new BrowserWindow({
     width: 1200,
@@ -33,8 +45,16 @@ function createWindow(): void {
 
   // 외부 링크는 앱 안에서 열지 않고 기본 브라우저로 넘긴다.
   window.webContents.setWindowOpenHandler(({ url }) => {
-    void shell.openExternal(url)
+    openExternally(url)
     return { action: 'deny' }
+  })
+
+  // target 없이 걸린 링크는 창을 새로 열지 않고 지금 화면을 덮어버린다.
+  // 그러면 앱으로 돌아올 길이 없으므로, 앱 밖으로 나가는 이동은 전부 여기서 가로챈다.
+  window.webContents.on('will-navigate', (event, url) => {
+    if (url === window.webContents.getURL()) return
+    event.preventDefault()
+    openExternally(url)
   })
 
   if (process.env.ELECTRON_RENDERER_URL) {

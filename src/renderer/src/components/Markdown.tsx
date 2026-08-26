@@ -14,7 +14,8 @@ export function Markdown({ children }: { children: string }): React.JSX.Element 
         remarkPlugins={[remarkGfm]}
         components={{
           // 링크는 앱 안에서 열지 않는다. 메인 프로세스가 기본 브라우저로 넘긴다.
-          a: ({ children: label, ...props }) => (
+          // node 는 react-markdown 의 내부 값이라 DOM 으로 흘려보내지 않는다.
+          a: ({ node: _node, children: label, ...props }) => (
             <a {...props} target="_blank" rel="noreferrer">
               {label}
             </a>
