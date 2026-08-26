@@ -5,6 +5,7 @@ import { EmptyState } from '../components/EmptyState'
 import { EntryForm } from '../components/EntryForm'
 import { LinkPartition } from '../components/LinkPartition'
 import { MemoPartition } from '../components/MemoPartition'
+import { SentenceText } from '../components/SentenceText'
 import { TagEditor } from '../components/TagEditor'
 import { useChildren, useEntry, useParents } from '../hooks/useEntries'
 import { useDeleteEntry, useRecordVisit, useUpdateEntry } from '../hooks/useEntryMutations'
@@ -17,6 +18,9 @@ export function DetailView({ id }: { id: number }): React.JSX.Element {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const update = useUpdateEntry()
   const remove = useDeleteEntry()
+  // 문장 본문에서 아는 단어를 짚어주기 위해 이웃을 미리 읽어둔다.
+  // 아래 파티션과 같은 쿼리라 요청이 늘지 않는다.
+  const { data: linkedWords } = useParents(id)
 
   useRecordVisit(id)
 
@@ -136,7 +140,15 @@ export function DetailView({ id }: { id: number }): React.JSX.Element {
                   : 'text-2xl font-semibold tracking-tight text-neutral-900'
               }
             >
-              {entry.text}
+              {entry.layer === 'sentence' ? (
+                <SentenceText
+                  text={entry.text}
+                  words={linkedWords ?? []}
+                  onOpen={(next) => go({ kind: 'detail', id: next })}
+                />
+              ) : (
+                entry.text
+              )}
             </h2>
 
             <TagEditor entry={entry} />

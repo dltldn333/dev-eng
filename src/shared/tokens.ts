@@ -1,4 +1,4 @@
-import { normalize } from '@shared/normalize'
+import { normalize } from './normalize'
 
 /**
  * 문장을 자동 연결의 단위로 쪼갠다.
@@ -94,4 +94,50 @@ export function indexTokensOf(text: string): string[] {
     for (const variant of variantsOf(token)) tokens.add(variant)
   }
   return [...tokens]
+}
+
+export interface TextSegment {
+  text: string
+  /** 아는 낱말이면 그 낱말을 찾을 때 쓴 열쇠, 아니면 null. */
+  key: string | null
+}
+
+/** 낱말 경계. 어포스트로피와 하이픈은 낱말 안쪽에서만 인정한다. */
+const WORD_PATTERN = /[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*/g
+
+/**
+ * 문장을 "아는 낱말"과 그 사이의 글자로 쪼갠다.
+ *
+ * 원문을 그대로 두고 위치만 나눈다. 화면에는 등록된 표기가 아니라 문장에 쓰인 그대로
+ * 보여야 하기 때문이다. "runs" 가 걸렸다고 "run" 으로 바꿔 보여주면 문장이 아니게 된다.
+ */
+export function segmentByKnown(text: string, known: Set<string>): TextSegment[] {
+  const segments: TextSegment[] = []
+  let cursor = 0
+
+  for (const match of text.matchAll(WORD_PATTERN)) {
+    const raw = match[0]
+    const start = match.index
+    const key = keyFor(raw, known)
+    if (!key) continue
+
+    if (start > cursor) segments.push({ text: text.slice(cursor, start), key: null })
+    segments.push({ text: raw, key })
+    cursor = start + raw.length
+  }
+
+  if (cursor < text.length) segments.push({ text: text.slice(cursor), key: null })
+  return segments
+}
+
+/** 문장에 쓰인 낱말이 아는 낱말 중 어느 것인지. 양쪽 변형을 모두 펼쳐서 맞춘다. */
+function keyFor(raw: string, known: Set<string>): string | null {
+  const normalized = normalize(raw)
+  if (!normalized) return null
+  if (known.has(normalized)) return normalized
+
+  for (const variant of variantsOf(normalized)) {
+    if (known.has(variant)) return variant
+  }
+  return null
 }

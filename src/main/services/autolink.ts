@@ -1,7 +1,7 @@
 import type { Entry } from '@shared/types'
 import { getDatabase } from '../db'
 import { ENTRY_COLUMNS, toEntry, type EntryRow } from '../repositories/row'
-import { indexTokensOf, variantsOf } from './tokens'
+import { indexTokensOf, variantsOf } from '@shared/tokens'
 
 /**
  * 문장이 남기는 토큰 색인을 다시 만든다. 문장 본문이 바뀌면 색인도 갈아끼워야 한다.

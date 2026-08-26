@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { indexTokensOf, tokenize, variantsOf } from './tokens'
+import { indexTokensOf, segmentByKnown, tokenize, variantsOf } from './tokens'
 
 describe('tokenize', () => {
   it('구두점을 걷어내고 소문자 토큰으로 쪼갠다', () => {
@@ -65,5 +65,39 @@ describe('indexTokensOf', () => {
     const tokens = indexTokensOf('He runs fast.')
     expect(tokens).toContain('runs')
     expect(tokens).toContain('run')
+  })
+})
+
+describe('segmentByKnown', () => {
+  const joined = (text: string, known: string[]): string =>
+    segmentByKnown(text, new Set(known))
+      .map((segment) => (segment.key ? `[${segment.text}]` : segment.text))
+      .join('')
+
+  it('아는 낱말만 표시한다', () => {
+    expect(joined('Let me inspect the log.', ['inspect'])).toBe('Let me [inspect] the log.')
+  })
+
+  it('원문 표기를 바꾸지 않는다', () => {
+    expect(joined('He runs fast.', ['run'])).toBe('He [runs] fast.')
+  })
+
+  it('대소문자가 달라도 찾는다', () => {
+    expect(joined('Inspect it.', ['inspect'])).toBe('[Inspect] it.')
+  })
+
+  it('낱말 일부에는 걸리지 않는다', () => {
+    expect(joined('Reinspection is done.', ['inspect'])).toBe('Reinspection is done.')
+  })
+
+  it('아는 낱말이 없으면 원문 그대로 한 조각', () => {
+    const segments = segmentByKnown('Nothing here.', new Set())
+    expect(segments).toEqual([{ text: 'Nothing here.', key: null }])
+  })
+
+  it('쪼갠 조각을 이으면 원문이 된다', () => {
+    const text = "Don't inspect the well-known logs, please."
+    const segments = segmentByKnown(text, new Set(['inspect', 'log', 'well-known']))
+    expect(segments.map((segment) => segment.text).join('')).toBe(text)
   })
 })
